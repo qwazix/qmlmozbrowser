@@ -8,4 +8,4 @@ debian/qmlmozbrowser/
 debian/tmp/
 objdir-armel/
 qmlMozEmbedTest.pro.user
-
+*~

@@ -8,7 +8,7 @@ import QtMozilla 1.0
 import QtQuick 1.0
 import org.hildon.components 1.0
 
-FocusScope {
+Page {
     id: mainScope
     objectName: "mainScope"
 
@@ -17,8 +17,8 @@ FocusScope {
 
     signal pageTitleChanged(string title)
 
-    x: 0; y: 0
-    width: 800; height: 600
+//    x: 0; y: 0
+//    width: 800; height: 600
 
     function load(address) {
         addressLine.text = address;
@@ -29,131 +29,65 @@ FocusScope {
         addressLine.forceActiveFocus()
         addressLine.selectAll()
     }
-
-    Rectangle {
+//    QMozContext { id: qMozContext }
+    ToolBar {
         id: navigationBar
-        color: "#efefef"
-        height: 45
-        anchors {
-            top: parent.top
-            left: parent.left
-            right: parent.right
-        }
-
         Row {
             id: controlsRow
             spacing: 4
-            Rectangle {
+            ToolButton {
                 id: backButton
-                height: navigationBar.height - 2
                 width: height
-                color: "#efefef"
-
-                Image {
-                    anchors.fill: parent
-                    anchors.centerIn: parent
-                    source: "../icons/backward.png"
-                }
-
-                Rectangle {
-                    anchors.fill: parent
-                    color: reloadButton.color
-                    opacity: 0.8
-                    visible: !webViewport.child().canGoBack
-                }
-
-                MouseArea {
-                    anchors.fill: parent
-                    onClicked: {
-                        console.log("going back")
-                        viewport.child().goBack()
-                    }
+                iconSource: "../icons/back.svg"
+                visible: webViewport.child().canGoBack
+                onClicked: {
+                    console.log("going back")
+                    viewport.child().goBack()
                 }
             }
-            Rectangle {
+            ToolButton {
                 id: forwardButton
-                height: navigationBar.height - 2
                 width: height
-                color: "#efefef"
-
-                Image {
-                    anchors.fill: parent
-                    anchors.centerIn: parent
-                    source: "../icons/forward.png"
-                }
-
-                Rectangle {
-                    anchors.fill: parent
-                    color: forwardButton.color
-                    opacity: 0.8
-                    visible: !webViewport.child().canGoForward
-                }
-
-                MouseArea {
-                    anchors.fill: parent
-                    onClicked: {
-                        console.log("going forward")
-                        viewport.child().goForward()
-                    }
+                iconSource: "../icons/forward.svg"
+                visible: webViewport.child().canGoForward
+                onClicked: {
+                    console.log("going forward")
+                    viewport.child().goForward()
                 }
             }
-            Rectangle {
+            ToolButton {
                 id: reloadButton
-                height: navigationBar.height - 2
                 width: height
-                color: "#efefef"
-
-                Image {
-                    anchors.fill: parent
-                    anchors.centerIn: parent
-                    source: viewport.child().loading ? "../icons/stop.png" : "../icons/refresh.png"
-                }
-
-                MouseArea {
-                    anchors.fill: parent
-                    onClicked: {
-                        viewport.child();
-                        if (viewport.canStop) {
-                            console.log("stop loading")
-                            viewport.stop()
-                        } else {
-                            console.log("reloading")
-                            viewport.child().reload()
-                        }
+                iconSource: viewport.child().loading ? "../icons/stop.svg" : "../icons/reload.svg"
+                onClicked: {
+                    viewport.child();
+                    if (viewport.canStop) {
+                        console.log("stop loading")
+                        viewport.stop()
+                    } else {
+                        console.log("reloading")
+                        viewport.child().reload()
                     }
                 }
             }
         }
         Rectangle {
-            color: "white"
+            color: "transparent"
             height: navigationBar.height - 4
-            border.width: 1
             anchors {
                 left: controlsRow.right
                 right: parent.right
-                margins: 2
+//                margins: 2
                 verticalCenter: parent.verticalCenter
             }
-            Rectangle {
-                anchors {
-                    top: parent.top
-                    bottom: parent.bottom
-                    left: parent.left
-                }
-                width: parent.width / 100 * viewport.child().loadProgress
-                color: "blue"
-                opacity: 0.3
-                visible: viewport.child().loadProgress != 100
-            }
-
-            TextInput {
+            TextField {
                 id: addressLine
                 clip: true
-                selectByMouse: true
-                font {
-                    pointSize: 18
-                    family: "Nokia Pure Text"
-                }
+//                selectByMouse: true
+//                font {
+//                    pointSize: 18
+//                    family: "Nokia Pure Text"
+//                }
                 anchors {
                     verticalCenter: parent.verticalCenter
                     left: parent.left
@@ -161,16 +95,37 @@ FocusScope {
                     margins: 2
                 }
 
+                Keys.onEnterPressed:{
+                    console.log("going to: ", addressLine.text)
+                    load(addressLine.text);
+                }
                 Keys.onReturnPressed:{
                     console.log("going to: ", addressLine.text)
                     load(addressLine.text);
                 }
-
                 Keys.onPressed: {
+                    console.log(event.key)
                     if (((event.modifiers & Qt.ControlModifier) && event.key == Qt.Key_L) || event.key == Qt.key_F6) {
                         focusAddressBar()
                         event.accepted = true
                     }
+                }
+                Rectangle {
+                    anchors {
+                        bottom: parent.bottom
+                        left: parent.left
+                    }
+                    height: 7
+                    width: parent.width / 100 * viewport.child().loadProgress
+//                    color: "blue"
+                    BorderImage {
+                        anchors.fill: parent
+                        source: "image://theme/ProgressbarSmall"
+//                        border.left: 1; border.top: 1
+//                        border.right: 1; border.bottom: 1
+                        horizontalTileMode: BorderImage.Repeat
+                    }
+                    visible: viewport.child().loadProgress != 100
                 }
             }
         }
@@ -206,14 +161,15 @@ FocusScope {
         }
 
         anchors {
-            top: navigationBar.bottom
+            top: parent.top
             left: parent.left
             right: parent.right
-            bottom: parent.bottom
+            bottom: navigationBar.top
         }
         Connections {
             target: webViewport.child()
             onViewInitialized: {
+                webViewport.child().addMessageListener("context:info")
                 print("QML View Initialized");
                 if (startURL.length != 0) {
                     load(startURL);
@@ -239,6 +195,10 @@ FocusScope {
             }
             onRecvAsyncMessage: {
                 print("onRecvAsyncMessage:" + message + ", data:" + data);
+                if (message == "context:info") {
+                    contextMenu.linkHref = data.LinkHref
+                    contextMenu.imgSrc = data.ImageSrc
+                }
             }
             onRecvSyncMessage: {
                 print("onRecvSyncMessage:" + message + ", data:" + data);
@@ -312,6 +272,33 @@ FocusScope {
             flickableItem: webViewport
         }
     }
+
+    MouseArea {
+        property bool longPressed: false
+        anchors.fill: webViewport
+        onPressAndHold: {
+            longPressed = true
+            contextMenu.x = mouseX
+            contextMenu.y = mouseY
+            contextMenu.open()
+        }
+    }
+
+    ContextMenu {
+        id: contextMenu
+        property string linkHref
+        property string imgSrc
+        ContextMenuLayout {
+
+            ContextMenuItem {
+                text: qsTr("Open in new window")
+                onClicked: {
+//                    qMozContext.newWindow(linkHref)
+                }
+            }
+        }
+    }
+
 
     Keys.onPressed: {
         if (((event.modifiers & Qt.ControlModifier) && event.key == Qt.Key_L) || event.key == Qt.key_F6) {

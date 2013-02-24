@@ -1,0 +1,5 @@
+#/bin/sh
+
+scp /home/qwazix/scratchboxenv/mozembed/qmlmozbrowser/icons/* user@192.168.2.36:~/mozqml/icons/
+scp /home/qwazix/scratchboxenv/mozembed/qmlmozbrowser/qml/* user@192.168.2.36:~/mozqml/qml/
+scp /home/qwazix/scratchboxenv/mozembed/qmlmozbrowser/qml/dialogs/* user@192.168.2.36:~/mozqml/qml/

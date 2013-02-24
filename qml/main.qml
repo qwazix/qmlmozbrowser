@@ -8,41 +8,11 @@ import QtMozilla 1.0
 import QtQuick 1.0
 import org.hildon.components 1.0
 
-//FocusScope {
-//    id: appWindow
-//    x: 0; y: 0
-//    width: 100; height: 100
-//    anchors.fill: parent
-//    MainPage {
-//    }
-//}
-
 PageStackWindow {
     id: appWindow
-
+    x: 0; y: 0
+    width: 100; height: 100
+    anchors.fill: parent
     initialPage: MainPage {
-        id: homePage
-    }
-
-    InfoBanner {
-        id: infoBanner
-
-        function showMessage(message) {
-            label.text = message;
-            infoBanner.open();
-        }
-
-        content: Label {
-            id: label
-
-            anchors.fill: parent
-            horizontalAlignment: Text.AlignHCenter
-            verticalAlignment: Text.AlignVCenter
-            color: theme.notificationTextColor
-        }
-    }
-
-    InfoNote {
-        id: infoNote
     }
 }

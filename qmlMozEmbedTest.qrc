@@ -1,9 +1,5 @@
 <RCC>
     <qresource prefix="/">
-        <file>icons/forward.png</file>
-        <file>icons/backward.png</file>
-        <file>icons/refresh.png</file>
-        <file>icons/stop.png</file>
         <file>qml/main.qml</file>
         <file>qml/MainPage.qml</file>
         <file>qml/main_meego.qml</file>
@@ -24,5 +20,10 @@
         <file alias="qml/DialogButton.qml">qml/dialogs/DialogButton.qml</file>
         <file alias="qml/DialogLineInput.qml">qml/dialogs/DialogLineInput.qml</file>
         <file>qml/Stack.qml</file>
+        <file>icons/back.svg</file>
+        <file>icons/cursorMode.svg</file>
+        <file>icons/forward.svg</file>
+        <file>icons/reload.svg</file>
+        <file>icons/stop.svg</file>
     </qresource>
 </RCC>

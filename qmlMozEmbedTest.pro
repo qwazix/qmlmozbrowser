@@ -46,3 +46,9 @@ INSTALLS += target
 contains(CONFIG,qdeclarative-boostable):contains(MEEGO_EDITION,harmattan) {
     DEFINES += HARMATTAN_BOOSTER
 }
+
+OTHER_FILES += \
+    qml/Stack.qml \
+    qml/ScrollIndicator.qml \
+    qml/MainPage.qml \
+    qml/main.qml
