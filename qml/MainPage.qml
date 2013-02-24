@@ -6,6 +6,7 @@
 import Qt 4.7
 import QtMozilla 1.0
 import QtQuick 1.0
+import org.hildon.components 1.0
 
 FocusScope {
     id: mainScope

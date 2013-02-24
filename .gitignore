@@ -1,0 +1,11 @@
+Makefile
+build-objdir-armel-stamp
+configure-objdir-armel-stamp
+debian/files
+debian/qmlmozbrowser-dbg/
+debian/qmlmozbrowser.substvars
+debian/qmlmozbrowser/
+debian/tmp/
+objdir-armel/
+qmlMozEmbedTest.pro.user
+
