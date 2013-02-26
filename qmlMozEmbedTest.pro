@@ -11,8 +11,8 @@ contains(QT_MAJOR_VERSION, 4) {
   SOURCES += mainqt5.cpp
 }
 
-QML_FILES = qml/*.qml
-RESOURCES += qmlMozEmbedTest.qrc
+QML_FILES = qml-hildon/*.qml
+RESOURCES += qmlMozEmbedTestHildon.qrc
 
 TEMPLATE = app
 CONFIG -= app_bundle
@@ -46,9 +46,3 @@ INSTALLS += target
 contains(CONFIG,qdeclarative-boostable):contains(MEEGO_EDITION,harmattan) {
     DEFINES += HARMATTAN_BOOSTER
 }
-
-OTHER_FILES += \
-    qml/Stack.qml \
-    qml/ScrollIndicator.qml \
-    qml/MainPage.qml \
-    qml/main.qml
