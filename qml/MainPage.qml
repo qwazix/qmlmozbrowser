@@ -29,7 +29,7 @@ Page {
         addressLine.forceActiveFocus()
         addressLine.selectAll()
     }
-//    QMozContext { id: qMozContext }
+    QmlMozContext { id: qMozContext }
     ToolBar {
         id: navigationBar
         Row {
@@ -222,7 +222,9 @@ Page {
                 print("onAuthRequired: title:" + data.title + ", msg:" + data.text + ", winid:" + data.winid);
                 authDlg.show(data.title, data.text, data.defaultValue, data.winid);
             }
-
+            HandleLongTap: {
+                console.log('yay');
+            }
         }
         AlertDialog {
             id: alertDlg
@@ -273,31 +275,31 @@ Page {
         }
     }
 
-    MouseArea {
-        property bool longPressed: false
-        anchors.fill: webViewport
-        onPressAndHold: {
-            longPressed = true
-            contextMenu.x = mouseX
-            contextMenu.y = mouseY
-            contextMenu.open()
-        }
-    }
+//    MouseArea {
+//        property bool longPressed: false
+//        anchors.fill: webViewport
+//        onPressAndHold: {
+//            longPressed = true
+//            contextMenu.x = mouseX
+//            contextMenu.y = mouseY
+//            contextMenu.open()
+//        }
+//    }
 
-    ContextMenu {
-        id: contextMenu
-        property string linkHref
-        property string imgSrc
-        ContextMenuLayout {
+//    ContextMenu {
+//        id: contextMenu
+//        property string linkHref
+//        property string imgSrc
+//        ContextMenuLayout {
 
-            ContextMenuItem {
-                text: qsTr("Open in new window")
-                onClicked: {
-//                    qMozContext.newWindow(linkHref)
-                }
-            }
-        }
-    }
+//            ContextMenuItem {
+//                text: qsTr("Open in new window")
+//                onClicked: {
+////                    qMozContext.newWindow(linkHref)
+//                }
+//            }
+//        }
+//    }
 
 
     Keys.onPressed: {

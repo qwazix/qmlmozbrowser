@@ -125,8 +125,8 @@ int main(int argc, char *argv[])
     if (!path.isEmpty())
         QDir::setCurrent(path);
 
-    qmlRegisterType<QMozContext>("QtMozilla", 1, 0, "QMozContext");
     qmlRegisterType<QGraphicsMozView>("QtMozilla", 1, 0, "QGraphicsMozView");
+    qmlRegisterType<QMozContext>("QtMozilla", 1, 0, "QMozContext");
     qmlRegisterType<QDeclarativeMozView>("QtMozilla", 1, 0, "QDeclarativeMozView");
 
     QUrl qml;
