@@ -12,6 +12,7 @@
         <file>qml/dialogs/AuthenticationDialog.qml</file>
         <file>qml/dialogs/DialogButton.qml</file>
         <file>qml/dialogs/DialogLineInput.qml</file>
+
         <file alias="qml/Dialog.qml">qml/dialogs/Dialog.qml</file>
         <file alias="qml/AlertDialog.qml">qml/dialogs/AlertDialog.qml</file>
         <file alias="qml/ConfirmDialog.qml">qml/dialogs/ConfirmDialog.qml</file>

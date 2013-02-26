@@ -103,6 +103,7 @@ Page {
                     console.log("going to: ", addressLine.text)
                     load(addressLine.text);
                 }
+
                 Keys.onPressed: {
                     console.log(event.key)
                     if (((event.modifiers & Qt.ControlModifier) && event.key == Qt.Key_L) || event.key == Qt.key_F6) {
