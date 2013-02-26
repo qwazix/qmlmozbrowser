@@ -30,15 +30,10 @@
  */
 
 #include <QApplication>
-#include <QDeclarativeView>
 #include <QGLWidget>
 #include <QDebug>
 #include <QStringList>
 #include <QDir>
-#include <QDeclarativeEngine>
-#ifdef HAS_BOOSTER
-#include <applauncherd/MDeclarativeCache>
-#endif
 #include "qmlapplicationviewer.h"
 #include "qdeclarativemozview.h"
 #include "qgraphicsmozview.h"
@@ -64,22 +59,15 @@ int main(int argc, char *argv[])
 #endif
 
     QApplication *application;
-    QDeclarativeView *view;
 #ifdef HARMATTAN_BOOSTER
     application = MDeclarativeCache::qApplication(argc, argv);
-    view = MDeclarativeCache::qDeclarativeView();
 #else
     qWarning() << Q_FUNC_INFO << "Warning! Running without booster. This may be a bit slower.";
     QApplication stackApp(argc, argv);
-    QmlApplicationViewer stackView;
     application = &stackApp;
-    view = &stackView;
-    stackView.setOrientation(QmlApplicationViewer::ScreenOrientationAuto);
 #endif
-    application->setQuitOnLastWindowClosed(true);
 
-    // FIXME uncommenting this will make UI not loaded
-    // QMozContext::GetInstance();
+    application->setQuitOnLastWindowClosed(true);
 
     QString path;
     QString urlstring;
@@ -129,7 +117,7 @@ int main(int argc, char *argv[])
 
     qmlRegisterType<QmlMozContext>("QtMozilla", 1, 0, "QmlMozContext");
     qmlRegisterType<QGraphicsMozView>("QtMozilla", 1, 0, "QGraphicsMozView");
-    qmlRegisterType<QDeclarativeMozView>("QtMozilla", 1, 0, "QDeclarativeMozView");
+    qmlRegisterType<QDeclarativeMozView>("QtMozilla", 1, 0, "QmlMozView");
 
     MozWindowCreator winCreator(qmlstring, glwidget, isFullscreen);
     QDeclarativeView *view = winCreator.CreateNewWindow(urlstring);
