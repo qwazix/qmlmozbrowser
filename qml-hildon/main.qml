@@ -15,4 +15,12 @@ PageStackWindow {
     anchors.fill: parent
     initialPage: MainPage {
     }
+
+    MouseArea{
+        anchors.fill: parent
+        id: globalMouseArea
+        onPressed: {
+            mouse.accepted = false;
+        }
+    }
 }

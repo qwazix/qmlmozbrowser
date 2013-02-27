@@ -29,7 +29,22 @@ Page {
         addressLine.forceActiveFocus()
         addressLine.selectAll()
     }
+
+    tools: MenuLayout {
+        id: mainMenu
+        MenuItem{
+            text: qsTr("New window")
+            onClicked: {
+                qMozContext.newWindow()
+            }
+        }
+
+
+    }
+
     QmlMozContext { id: qMozContext }
+
+
     ToolBar {
         id: navigationBar
         Row {
@@ -138,7 +153,7 @@ Page {
         }
     }
 
-    QDeclarativeMozView {
+    QmlMozView {
         id: webViewport
         visible: true
         focus: true
@@ -197,6 +212,7 @@ Page {
             onRecvAsyncMessage: {
                 print("onRecvAsyncMessage:" + message + ", data:" + data);
                 if (message == "context:info") {
+                    console.log(data.LinkHref)
                     contextMenu.linkHref = data.LinkHref
                     contextMenu.imgSrc = data.ImageSrc
                 }
@@ -223,8 +239,12 @@ Page {
                 print("onAuthRequired: title:" + data.title + ", msg:" + data.text + ", winid:" + data.winid);
                 authDlg.show(data.title, data.text, data.defaultValue, data.winid);
             }
-            HandleLongTap: {
-                console.log('yay');
+            onLongTapped: {
+//                console.log('yay');
+                contextMenu.__globalMouseArea = globalMouseArea;
+                contextMenu.__updatePosition()
+                contextMenu.open()
+                viewport.enabled = false;
             }
         }
         AlertDialog {
@@ -287,20 +307,23 @@ Page {
 //        }
 //    }
 
-//    ContextMenu {
-//        id: contextMenu
-//        property string linkHref
-//        property string imgSrc
-//        ContextMenuLayout {
+    ContextMenu {
+        id: contextMenu
+        property string linkHref
+        property string imgSrc
+        ContextMenuLayout {
 
-//            ContextMenuItem {
-//                text: qsTr("Open in new window")
-//                onClicked: {
-////                    qMozContext.newWindow(linkHref)
-//                }
-//            }
-//        }
-//    }
+            ContextMenuItem {
+                text: qsTr("Open in new window")
+                onClicked: {
+                    qMozContext.newWindow(linkHref)
+                    mouse.accepted = true;
+
+                }
+            }
+        }
+        onClosed: viewport.enabled = true
+    }
 
 
     Keys.onPressed: {

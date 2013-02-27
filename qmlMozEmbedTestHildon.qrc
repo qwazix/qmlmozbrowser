@@ -1,30 +1,23 @@
 <RCC>
-    <qresource prefix="/">
-        <file>qml/main.qml</file>
-        <file>qml/MainPage.qml</file>
-        <file>qml/main_meego.qml</file>
-        <file>qml/MainPageQuick.qml</file>
-        <file>qml/ScrollIndicator.qml</file>
-        <file>qml/dialogs/Dialog.qml</file>
-        <file>qml/dialogs/AlertDialog.qml</file>
-        <file>qml/dialogs/ConfirmDialog.qml</file>
-        <file>qml/dialogs/PromptDialog.qml</file>
-        <file>qml/dialogs/AuthenticationDialog.qml</file>
-        <file>qml/dialogs/DialogButton.qml</file>
-        <file>qml/dialogs/DialogLineInput.qml</file>
-
-        <file alias="qml/Dialog.qml">qml/dialogs/Dialog.qml</file>
-        <file alias="qml/AlertDialog.qml">qml/dialogs/AlertDialog.qml</file>
-        <file alias="qml/ConfirmDialog.qml">qml/dialogs/ConfirmDialog.qml</file>
-        <file alias="qml/PromptDialog.qml">qml/dialogs/PromptDialog.qml</file>
-        <file alias="qml/AuthenticationDialog.qml">qml/dialogs/AuthenticationDialog.qml</file>
-        <file alias="qml/DialogButton.qml">qml/dialogs/DialogButton.qml</file>
-        <file alias="qml/DialogLineInput.qml">qml/dialogs/DialogLineInput.qml</file>
-        <file>qml/Stack.qml</file>
-        <file>icons/back.svg</file>
-        <file>icons/cursorMode.svg</file>
-        <file>icons/forward.svg</file>
-        <file>icons/reload.svg</file>
-        <file>icons/stop.svg</file>
+    <qresource prefix="/"/>
+    <qresource prefix="/qml">
+        <file alias="main.qml">qml-hildon/main.qml</file>
+        <file alias="MainPage.qml">qml-hildon/MainPage.qml</file>
+        <file alias="ScrollIndicator.qml">qml-hildon/ScrollIndicator.qml</file>
+        <file alias="Stack.qml">qml-hildon/Stack.qml</file>
+        <file alias="AlertDialog.qml">qml-hildon/dialogs/AlertDialog.qml</file>
+        <file alias="AuthenticationDialog.qml">qml-hildon/dialogs/AuthenticationDialog.qml</file>
+        <file alias="ConfirmDialog.qml">qml-hildon/dialogs/ConfirmDialog.qml</file>
+        <file alias="Dialog.qml">qml-hildon/dialogs/Dialog.qml</file>
+        <file alias="DialogButton.qml">qml-hildon/dialogs/DialogButton.qml</file>
+        <file alias="DialogLineInput.qml">qml-hildon/dialogs/DialogLineInput.qml</file>
+        <file alias="PromptDialog.qml">qml-hildon/dialogs/PromptDialog.qml</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="back.svg">icons-hildon/back.svg</file>
+        <file alias="cursorMode.svg">icons-hildon/cursorMode.svg</file>
+        <file alias="forward.svg">icons-hildon/forward.svg</file>
+        <file alias="reload.svg">icons-hildon/reload.svg</file>
+        <file alias="stop.svg">icons-hildon/stop.svg</file>
     </qresource>
 </RCC>

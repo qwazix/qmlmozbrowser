@@ -11,8 +11,13 @@ contains(QT_MAJOR_VERSION, 4) {
   SOURCES += mainqt5.cpp
 }
 
-QML_FILES = qml-hildon/*.qml
-RESOURCES += qmlMozEmbedTestHildon.qrc
+QML_FILES = qml/*.qml
+RESOURCES = qmlMozEmbedTest.qrc
+
+maemo5: {
+    QML_FILES = qml-hildon/*.qml
+    RESOURCES = qmlMozEmbedTestHildon.qrc
+}
 
 TEMPLATE = app
 CONFIG -= app_bundle
@@ -46,3 +51,16 @@ INSTALLS += target
 contains(CONFIG,qdeclarative-boostable):contains(MEEGO_EDITION,harmattan) {
     DEFINES += HARMATTAN_BOOSTER
 }
+
+OTHER_FILES += \
+    qml-hildon/Stack.qml \
+    qml-hildon/ScrollIndicator.qml \
+    qml-hildon/MainPage.qml \
+    qml-hildon/main.qml \
+    qml-hildon/dialogs/PromptDialog.qml \
+    qml-hildon/dialogs/DialogLineInput.qml \
+    qml-hildon/dialogs/DialogButton.qml \
+    qml-hildon/dialogs/Dialog.qml \
+    qml-hildon/dialogs/ConfirmDialog.qml \
+    qml-hildon/dialogs/AuthenticationDialog.qml \
+    qml-hildon/dialogs/AlertDialog.qml
