@@ -40,7 +40,8 @@ FocusScope {
         anchors.right: parent.right
         onBackClicked: Qt.quit()
         backButtonIconSource: "image://theme/wmCloseIcon" + backPressedState
-        titleText: ""
+        titleText: "Alopex"
+        showMenuIndicator: true
         state: "visible"
         states: [
             State {
@@ -84,7 +85,7 @@ FocusScope {
 
     Menu {
         id: mainMenu
-        MenuLayout {
+        tools: MenuLayout {
             MenuItem{
                 text: qsTr("New window")
                 onClicked: {
@@ -110,11 +111,12 @@ FocusScope {
 
     Rectangle {
         id: navigationBar
-        height: 75
+        height: 77
         anchors.left: parent.left
         anchors.right: parent.right
         state: "visible"
-
+        color: "transparent";
+        z: 20
         MouseArea{
             anchors.fill: parent
             drag {
@@ -123,8 +125,17 @@ FocusScope {
                 axis: Drag.YAxis
                 minimumY: mainScope.height - navigationBar.height
                 maximumY: mainScope.height - (navigationBar.height - navigationBarToolBar.height)
+                onActiveChanged: {
+                    if (drag.active) navigationBar.state = "moving";
+                    else {
+                        if (navigationBar.y < mainScope.height - navigationBar.height + navigationBarToolBar.height/2) {
+                            navigationBar.state = "visible"
+                        } else {
+                            navigationBar.state = "hidden"
+                        }
+                    }
+                }
             }
-//            onReleased:
         }
         Rectangle {
             id: navigationBarToolBar
@@ -270,6 +281,12 @@ FocusScope {
                     target: navigationBar;
                     y: mainScope.height - navigationBar.height
                 }
+            },
+            State {
+                name: "moving"
+                PropertyChanges {
+                    target: navigationBar;
+                }
             }
         ]
         transitions: [
@@ -323,7 +340,8 @@ FocusScope {
             top: statusBar.bottom
             left: parent.left
             right: parent.right
-            bottom: navigationBar.top
+            bottom: parent.bottom
+            bottomMargin: appWindow.height - navigationBar.y - (navigationBar.height - navigationBarToolBar.height)
         }
         Connections {
             target: webViewport.child()
@@ -348,6 +366,8 @@ FocusScope {
             }
             onTitleChanged: {
                 pageTitleChanged(webViewport.child().title);
+                statusBar.titleText = webViewport.child().title;
+                console.log(webViewport.child().title)
             }
             onUrlChanged: {
                 addressLine.text = webViewport.child().url;
