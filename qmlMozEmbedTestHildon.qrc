@@ -19,5 +19,6 @@
         <file alias="forward.svg">icons-hildon/forward.svg</file>
         <file alias="reload.svg">icons-hildon/reload.svg</file>
         <file alias="stop.svg">icons-hildon/stop.svg</file>
+        <file alias="fullscreen.svg">icons-hildon/fullscreen.svg</file>
     </qresource>
 </RCC>

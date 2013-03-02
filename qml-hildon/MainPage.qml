@@ -8,7 +8,9 @@ import QtMozilla 1.0
 import QtQuick 1.0
 import org.hildon.components 1.0
 
-Page {
+FocusScope {
+    property alias navBar: navigationBar
+
     id: mainScope
     objectName: "mainScope"
 
@@ -30,118 +32,221 @@ Page {
         addressLine.selectAll()
     }
 
-    tools: MenuLayout {
+    StatusBar{
+        id: statusBar
+        property string backPressedState: backButtonPressed ? "Pressed" : ""
+        onTitleAreaClicked: mainMenu.open()
+        anchors.left: parent.left
+        anchors.right: parent.right
+        onBackClicked: Qt.quit()
+        backButtonIconSource: "image://theme/wmCloseIcon" + backPressedState
+        titleText: ""
+        state: "visible"
+        states: [
+            State {
+                name: "hidden"
+                PropertyChanges {
+                    target: statusBar;
+                    height: 0
+                    visible: false
+                }
+            },
+            State {
+                name: "visible"
+                PropertyChanges {
+                    target: statusBar;
+                    visible: true
+                    height: 56
+                }
+            }
+        ]
+        transitions: [
+                      Transition {
+//                          from: "hidden"
+                          to: "visible"
+                          PropertyAnimation {
+                              target: statusBar;
+                              properties: "height";
+                              duration: 100
+                          }
+                      },
+                       Transition {
+//                           from: "visible"
+                           to: "hidden"
+                           PropertyAnimation {
+                               target: statusBar;
+                               properties: "height";
+                               duration: 100
+                           }
+                       }
+                   ]
+    }
+
+    Menu {
         id: mainMenu
-        MenuItem{
-            text: qsTr("New window")
-            onClicked: {
-                qMozContext.newWindow()
+        MenuLayout {
+            MenuItem{
+                text: qsTr("New window")
+                onClicked: {
+                    qMozContext.newWindow()
+                }
             }
         }
-
 
     }
 
     QmlMozContext { id: qMozContext }
 
 
-    ToolBar {
+    Flickable{
+        id: swipeManger
+        property bool swipeFromBottomEdge : false
+        onMovementStarted: {
+            if (globalMouseArea.mouseY < 20) flickable.swipeFromBottomEdge = true;
+            else flickable.swipeFromBottomEdge = false;
+            console.log('movementStarted')
+        }
+    }
+
+    Rectangle {
         id: navigationBar
-        Row {
-            id: controlsRow
-            spacing: 4
-            ToolButton {
-                id: backButton
-                width: height
-                iconSource: "../icons/back.svg"
-                visible: webViewport.child().canGoBack
-                onClicked: {
-                    console.log("going back")
-                    viewport.child().goBack()
-                }
+        height: 75
+        anchors.left: parent.left
+        anchors.right: parent.right
+        state: "visible"
+
+        MouseArea{
+            anchors.fill: parent
+            drag {
+
+                target: statusBar.state=="hidden"?navigationBar:null
+                axis: Drag.YAxis
+                minimumY: mainScope.height - navigationBar.height
+                maximumY: mainScope.height - (navigationBar.height - navigationBarToolBar.height)
             }
-            ToolButton {
-                id: forwardButton
-                width: height
-                iconSource: "../icons/forward.svg"
-                visible: webViewport.child().canGoForward
-                onClicked: {
-                    console.log("going forward")
-                    viewport.child().goForward()
-                }
-            }
-            ToolButton {
-                id: reloadButton
-                width: height
-                iconSource: viewport.child().loading ? "../icons/stop.svg" : "../icons/reload.svg"
-                onClicked: {
-                    viewport.child();
-                    if (viewport.canStop) {
-                        console.log("stop loading")
-                        viewport.stop()
-                    } else {
-                        console.log("reloading")
-                        viewport.child().reload()
-                    }
-                }
-            }
+//            onReleased:
         }
         Rectangle {
-            color: "transparent"
-            height: navigationBar.height - 4
-            anchors {
-                left: controlsRow.right
-                right: parent.right
-//                margins: 2
-                verticalCenter: parent.verticalCenter
+            id: navigationBarToolBar
+            height: 70
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.bottom: parent.bottom
+            Image {
+                id: background
+                anchors.fill: parent
+                smooth: true
+                fillMode: Image.Stretch
+                source: "image://theme/ToolbarPrimaryBackground"
             }
-            TextField {
-                id: addressLine
-                clip: true
-//                selectByMouse: true
-//                font {
-//                    pointSize: 18
-//                    family: "Nokia Pure Text"
-//                }
-                anchors {
-                    verticalCenter: parent.verticalCenter
-                    left: parent.left
-                    right: parent.right
-                    margins: 2
+            Row {
+                id: controlsRow
+    //            spacing: 4
+                anchors.left: parent.left
+                anchors.right: parent.right
+                ToolButton {
+                    id: backButton
+                    width: height
+                    iconSource: "../icons/back.svg"
+                    visible: webViewport.child().canGoBack
+                    onClicked: {
+                        console.log("going back")
+                        viewport.child().goBack()
+                    }
                 }
+                ToolButton {
+                    id: forwardButton
+                    width: height
+                    iconSource: "../icons/forward.svg"
+                    visible: webViewport.child().canGoForward
+                    onClicked: {
+                        console.log("going forward")
+                        viewport.child().goForward()
+                    }
+                }
+                ToolButton {
+                    id: reloadButton
+                    width: height
+                    iconSource: viewport.child().loading ? "../icons/stop.svg" : "../icons/reload.svg"
+                    onClicked: {
+                        viewport.child();
+                        if (viewport.canStop) {
+                            console.log("stop loading")
+                            viewport.stop()
+                        } else {
+                            console.log("reloading")
+                            viewport.child().reload()
+                        }
+                    }
+                }
+                TextField {
+                    id: addressLine
+                    objectName: "addressLine"
+                    width: {
+                        var othersWidth = 0
+                        for (var i = 0; i < parent.children.length; i++){
+                            var ch = parent.children[i]
+                            if (ch.objectName !== "addressLine" && !isNaN(ch.width) && ch.visible && ch.width > 0){
+                                othersWidth += ch.width
+                            }
+                        }
+                        return parent.width - othersWidth
+                    }
+                    anchors.top: parent.top;
+                    anchors.topMargin: 2
+                    clip: true
+    //                selectByMouse: true
+    //                font {
+    //                    pointSize: 18
+    //                    family: "Nokia Pure Text"
+    //                }
+                    Keys.onEnterPressed:{
+                        console.log("going to: ", addressLine.text)
+                        load(addressLine.text);
+                    }
+                    Keys.onReturnPressed:{
+                        console.log("going to: ", addressLine.text)
+                        load(addressLine.text);
+                    }
 
-                Keys.onEnterPressed:{
-                    console.log("going to: ", addressLine.text)
-                    load(addressLine.text);
+                    Keys.onPressed: {
+                        console.log(event.key)
+                        if (((event.modifiers & Qt.ControlModifier) && event.key == Qt.Key_L) || event.key == Qt.key_F6) {
+                            focusAddressBar()
+                            event.accepted = true
+                        }
+                    }
+                    Rectangle {
+                        anchors {
+                            bottom: parent.bottom
+                            left: parent.left
+                        }
+                        height: 7
+                        width: parent.width / 100 * viewport.child().loadProgress
+    //                    color: "blue"
+                        BorderImage {
+                            anchors.fill: parent
+                            source: "image://theme/ProgressbarSmall"
+                            border.left: 1; border.top: 1
+                            border.right: 1; border.bottom: 1
+                            horizontalTileMode: BorderImage.Repeat
+                        }
+                        visible: viewport.child().loadProgress != 100
+                    }
                 }
-                Keys.onReturnPressed:{
-                    console.log("going to: ", addressLine.text)
-                    load(addressLine.text);
-                }
+                ToolButton {
+                    id: showFullScreen
+                    iconSource: "../icons/fullscreen.svg"
+                    onClicked: {
+                        if (statusBar.state=="visible"){
+                            navigationBar.state = "hidden"
+                            statusBar.state = "hidden"
+                        } else {
+                            navigationBar.state = "visible"
+                            statusBar.state = "visible"
+                        }
 
-                Keys.onPressed: {
-                    console.log(event.key)
-                    if (((event.modifiers & Qt.ControlModifier) && event.key == Qt.Key_L) || event.key == Qt.key_F6) {
-                        focusAddressBar()
-                        event.accepted = true
                     }
-                }
-                Rectangle {
-                    anchors {
-                        bottom: parent.bottom
-                        left: parent.left
-                    }
-                    height: 7
-                    width: parent.width / 100 * viewport.child().loadProgress
-//                    color: "blue"
-                    BorderImage {
-                        anchors.fill: parent
-                        source: "image://theme/ProgressbarSmall"
-//                        border.left: 1; border.top: 1
-//                        border.right: 1; border.bottom: 1
-                        horizontalTileMode: BorderImage.Repeat
-                    }
-                    visible: viewport.child().loadProgress != 100
                 }
             }
         }
@@ -151,6 +256,44 @@ Page {
         Component.onDestruction: {
             print("QML On Destroyed>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
         }
+        states: [
+            State {
+                name: "hidden"
+                PropertyChanges {
+                    target: navigationBar;
+                    y: mainScope.height - (navigationBar.height - navigationBarToolBar.height)
+                }
+            },
+            State {
+                name: "visible"
+                PropertyChanges {
+                    target: navigationBar;
+                    y: mainScope.height - navigationBar.height
+                }
+            }
+        ]
+        transitions: [
+                      Transition {
+//                          from: "hidden"
+                          to: "visible"
+                          PropertyAnimation {
+                              id:showTr;
+                              target: navigationBar;
+                              properties: "y";
+                              duration: 100
+                          }
+                      },
+                       Transition {
+//                           from: "visible"
+                           to: "hidden"
+                           PropertyAnimation {
+                               id:hideTr;
+                               target: navigationBar;
+                               properties: "y";
+                               duration: 100
+                           }
+                       }
+                   ]
     }
 
     QmlMozView {
@@ -177,7 +320,7 @@ Page {
         }
 
         anchors {
-            top: parent.top
+            top: statusBar.bottom
             left: parent.left
             right: parent.right
             bottom: navigationBar.top
@@ -239,7 +382,7 @@ Page {
                 print("onAuthRequired: title:" + data.title + ", msg:" + data.text + ", winid:" + data.winid);
                 authDlg.show(data.title, data.text, data.defaultValue, data.winid);
             }
-            onLongTapped: {
+            onHandleLongTap: {
 //                console.log('yay');
                 contextMenu.__globalMouseArea = globalMouseArea;
                 contextMenu.__updatePosition()
