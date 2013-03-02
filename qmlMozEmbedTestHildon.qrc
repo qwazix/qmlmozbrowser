@@ -12,6 +12,7 @@
         <file alias="DialogButton.qml">qml-hildon/dialogs/DialogButton.qml</file>
         <file alias="DialogLineInput.qml">qml-hildon/dialogs/DialogLineInput.qml</file>
         <file alias="PromptDialog.qml">qml-hildon/dialogs/PromptDialog.qml</file>
+        <file alias="constants.js">qml-hildon/constants.js</file>
     </qresource>
     <qresource prefix="/icons">
         <file alias="back.svg">icons-hildon/back.svg</file>
@@ -20,5 +21,7 @@
         <file alias="reload.svg">icons-hildon/reload.svg</file>
         <file alias="stop.svg">icons-hildon/stop.svg</file>
         <file alias="fullscreen.svg">icons-hildon/fullscreen.svg</file>
+        <file alias="backOverlay.svg">icons-hildon/backOverlay.svg</file>
+        <file alias="forwardOverlay.svg">icons-hildon/forwardOverlay.svg</file>
     </qresource>
 </RCC>

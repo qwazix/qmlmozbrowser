@@ -7,6 +7,7 @@ import Qt 4.7
 import QtMozilla 1.0
 import QtQuick 1.0
 import org.hildon.components 1.0
+import "constants.js" as Cst
 
 FocusScope {
     property alias navBar: navigationBar
@@ -99,19 +100,75 @@ FocusScope {
     QmlMozContext { id: qMozContext }
 
 
-    Flickable{
-        id: swipeManger
-        property bool swipeFromBottomEdge : false
-        onMovementStarted: {
-            if (globalMouseArea.mouseY < 20) flickable.swipeFromBottomEdge = true;
-            else flickable.swipeFromBottomEdge = false;
-            console.log('movementStarted')
+//    Flickable{
+//        id: swipeManger
+//        property bool swipeFromBottomEdge : false
+//        onMovementStarted: {
+//            if (globalMouseArea.mouseY < 20) flickable.swipeFromBottomEdge = true;
+//            else flickable.swipeFromBottomEdge = false;
+//            console.log('movementStarted')
+//        }
+//    }
+
+    Image {
+        id: backOverlay
+        source: "../icons/backOverlay.svg"
+        state: "hidden"
+        width: 148
+        height: 280
+        y: (appWindow.height - height) / 2
+        z:20
+        states: [
+            State {
+                name: "hidden"
+                PropertyChanges {
+                    target: backOverlay;
+                    x: appWindow.width - Cst.swipePadding
+                }
+            },
+            State {
+                name: "other"
+                PropertyChanges {
+                    target: backOverlay;
+                }
+            }
+
+        ]
+        transitions: [
+            Transition {
+                to: "hidden"
+                PropertyAnimation {
+                    target: backOverlay;
+                    properties: "x";
+                    duration: 300
+                }
+            }
+        ]
+        MouseArea {
+            anchors.fill: parent
+            drag {
+                axis: Drag.XAxis
+                target: viewport.child().canGoBack?backOverlay:null
+                minimumX: appWindow.width - backOverlay.width
+                maximumX: appWindow.width -Cst.swipePadding
+                onActiveChanged: {
+                    if (drag.active) {
+                        backOverlay.state = "other"
+                        viewport.enabled = false;
+                    } else {
+                        backOverlay.state = "hidden"
+                        viewport.enabled = true;
+                        if (backOverlay.x < appWindow.width - backOverlay.width*0.8)
+                            viewport.child().goBack()
+                    }
+                }
+            }
         }
     }
 
     Rectangle {
         id: navigationBar
-        height: 77
+        height: 70 + Cst.swipePadding
         anchors.left: parent.left
         anchors.right: parent.right
         state: "visible"
@@ -350,6 +407,8 @@ FocusScope {
                 print("QML View Initialized");
                 if (startURL.length != 0) {
                     load(startURL);
+                } else {
+                    load("file:///opt/qmlMozEmbedTest/splash/splash.svg")
                 }
             }
             onViewAreaChanged: {

@@ -14,9 +14,12 @@ contains(QT_MAJOR_VERSION, 4) {
 QML_FILES = qml/*.qml
 RESOURCES = qmlMozEmbedTest.qrc
 
-maemo5: {
+maemo5 {
     QML_FILES = qml-hildon/*.qml
     RESOURCES = qmlMozEmbedTestHildon.qrc
+    splash.path = /opt/qmlMozEmbedTest/splash
+    splash.files = icons-hildon/splash.svg
+    INSTALLS += splash
 }
 
 TEMPLATE = app
@@ -63,4 +66,6 @@ OTHER_FILES += \
     qml-hildon/dialogs/Dialog.qml \
     qml-hildon/dialogs/ConfirmDialog.qml \
     qml-hildon/dialogs/AuthenticationDialog.qml \
-    qml-hildon/dialogs/AlertDialog.qml
+    qml-hildon/dialogs/AlertDialog.qml \
+    qml-hildon/constants.js \
+    icons-hildon/splash.svg
