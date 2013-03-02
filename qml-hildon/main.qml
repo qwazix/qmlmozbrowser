@@ -11,16 +11,16 @@ import org.hildon.components 1.0
 FocusScope {
     id: appWindow
     x: 0; y: 0
-    width: 800; height: 480
+    width: 100; height: 100
     anchors.fill: parent
     MainPage {
     }
 
-    MouseArea{
-        anchors.fill: parent
-        id: globalMouseArea
-        onPressed: {
-            mouse.accepted = false;
-        }
-    }
+//    MouseArea{
+//        anchors.fill: parent
+//        id: globalMouseArea
+//        onPressed: {
+//            mouse.accepted = false;
+//        }
+//    }
 }
