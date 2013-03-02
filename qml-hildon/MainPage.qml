@@ -138,6 +138,23 @@ FocusScope {
             }
         }
         Rectangle {
+            anchors {
+                top: parent.top
+                left: parent.left
+            }
+            height: 7
+            width: parent.width / 100 * viewport.child().loadProgress
+//                    color: "blue"
+            BorderImage {
+                anchors.fill: parent
+                source: "image://theme/ProgressbarSmall"
+                border.left: 1; border.top: 1
+                border.right: 1; border.bottom: 1
+                horizontalTileMode: BorderImage.Repeat
+            }
+            visible: viewport.child().loadProgress != 100
+        }
+        Rectangle {
             id: navigationBarToolBar
             height: 70
             anchors.left: parent.left
@@ -226,23 +243,6 @@ FocusScope {
                             focusAddressBar()
                             event.accepted = true
                         }
-                    }
-                    Rectangle {
-                        anchors {
-                            bottom: parent.bottom
-                            left: parent.left
-                        }
-                        height: 7
-                        width: parent.width / 100 * viewport.child().loadProgress
-    //                    color: "blue"
-                        BorderImage {
-                            anchors.fill: parent
-                            source: "image://theme/ProgressbarSmall"
-                            border.left: 1; border.top: 1
-                            border.right: 1; border.bottom: 1
-                            horizontalTileMode: BorderImage.Repeat
-                        }
-                        visible: viewport.child().loadProgress != 100
                     }
                 }
                 ToolButton {
