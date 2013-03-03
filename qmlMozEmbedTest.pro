@@ -18,7 +18,8 @@ maemo5 {
     QML_FILES = qml-hildon/*.qml
     RESOURCES = qmlMozEmbedTestHildon.qrc
     splash.path = /opt/qmlMozEmbedTest/splash
-    splash.files = icons-hildon/splash.svg
+    splash.files = icons-hildon/splash.html \
+                   icons-hildon/splash.png
     INSTALLS += splash
 }
 

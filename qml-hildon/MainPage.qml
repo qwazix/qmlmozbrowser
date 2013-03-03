@@ -408,7 +408,7 @@ FocusScope {
                 if (startURL.length != 0) {
                     load(startURL);
                 } else {
-                    load("file:///opt/qmlMozEmbedTest/splash/splash.svg")
+                    load("file:///opt/qmlMozEmbedTest/splash/splash.html")
                 }
             }
             onViewAreaChanged: {
