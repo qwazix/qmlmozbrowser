@@ -15,18 +15,7 @@ FocusScope {
         webViewport.child().load(address)
     }
 
-    QmlMozContext { id: context }
-
-    AddressField {
-        id: addressLine
-        viewport: webViewport
-        anchors {
-            top: parent.top
-            left: parent.left
-            right: parent.right
-            topMargin: 0
-        }
-    }
+    QmlMozContext { id: mozContext }
 
     QmlMozView {
         id: webViewport
@@ -34,7 +23,7 @@ FocusScope {
         objectName: "webViewport"
         visible: true
         focus: true
-        enabled: !(alertDlg.visible || confirmDlg.visible || promptDlg.visible || authDlg.visible || navigation.visible || contextMenu.visible)
+        enabled: !(alertDlg.visible || confirmDlg.visible || promptDlg.visible || authDlg.visible || overlay.visible || settingsPage.x==0)
         property bool movingHorizontally: false
         property bool movingVertically: true
         property variant visibleArea: QtObject {
@@ -56,20 +45,18 @@ FocusScope {
             onTriggered: webViewport.scrollTimeout()
         }
 
-        anchors {
-            top: addressLine.bottom
-            left: parent.left
-            right: parent.right
-            bottom: parent.bottom
-        }
+        anchors.fill: parent
+
         Connections {
             target: webViewport.child()
             onViewInitialized: {
-                context.setPref("browser.ui.touch.left", 32);
-                context.setPref("browser.ui.touch.right", 32);
-                context.setPref("browser.ui.touch.top", 48);
-                context.setPref("browser.ui.touch.bottom", 16);
-                context.setPref("browser.ui.touch.weight.visited", 120);
+                mozContext.setPref("browser.ui.touch.left", 32);
+                mozContext.setPref("browser.ui.touch.right", 32);
+                mozContext.setPref("browser.ui.touch.top", 48);
+                mozContext.setPref("browser.ui.touch.bottom", 16);
+                mozContext.setPref("browser.ui.touch.weight.visited", 120);
+                mozContext.setPref("browser.download.folderList", 2); // 0 - Desktop, 1 - Downloads, 2 - Custom
+                mozContext.setPref("browser.download.useDownloadDir", false); // Invoke filepicker instead of immediate download to ~/Downloads
                 webViewport.child().loadFrameScript("chrome://embedlite/content/embedhelper.js");
                 webViewport.child().addMessageListener("embed:alert");
                 webViewport.child().addMessageListener("embed:prompt");
@@ -81,6 +68,29 @@ FocusScope {
                 if (startURL.length != 0 && createParentID == 0) {
                     load(startURL)
                 }
+                else {
+                    load("about:blank")
+                }
+            }
+            onLoadingChanged: {
+                var isLoading = webViewport.child().loading
+                if (isLoading && !overlay.visible) {
+                    overlay.showAddressBar()
+                }
+                else if (!isLoading && overlay.visible && !navigation.visible && !contextMenu.visible && !addressLine.inputFocus) {
+                    overlay.hide()
+                }
+            }
+            onHandleLongTap: {
+                navigation.anchors.topMargin = 0
+                var posY = mapToItem(navigation, point.x, point.y).y - navigation.height/2
+                if (posY < 0) {
+                    posY = 10
+                }
+                else if (point.y + navigation.height/2 > mainScope.height) {
+                    posY -= (point.y + navigation.height/2) - mainScope.height + 10
+                }
+                overlay.show(posY)
             }
             onViewAreaChanged: {
                 var r = webViewport.child().contentRect
@@ -190,120 +200,171 @@ FocusScope {
         }
     }
 
-    MouseArea {
-        anchors.fill: webViewport
+    Item {
+        id: overlay
+        anchors.fill: mainScope
+        visible: opacity > 0.01
+        opacity: 0.01
 
-        property int mX: 0
-        property int mY: 0
-        property int edgeY: 0
-        property int deltaY: 0
-        property bool longPressed: false
-        property bool longLocked: false
+        function show(posY) {
+            buttonsHide.running = false
+            navigation.anchors.topMargin = posY
+            contextMenu.visible = false
+            navigation.visible = true
+            buttonsShow.running = true
+        }
 
-        onPressed: {
-            addressLine.unfocusAddressBar()
-            var mapped = mapToItem(mainScope, mouse.x, mouse.y);
-            mY = mapped.y
-            mX = mapped.x
-
-            navigation.contextInfoAvialable = false
+        function showAddressBar() {
+            addressLine.visible = true
             navigation.visible = false
             contextMenu.visible = false
-
-            webViewport.focus = true
+            buttonsShow.running = true
         }
 
-        onReleased: {
-            if (!navigation.visible) {
-                webViewport.focus = true;
-
-                if (webViewport.child().contentRect.y == 0 && deltaY < - 20) {
-                        addressLine.anchors.topMargin = 0;
-                }
-                else  {
-                    addressLine.anchors.topMargin = -addressLine.height
-                }
-            }
-
-            longPressed = false;
-            longLocked = false
-            edgeY = 0
+        function hide() {
+            buttonsShow.running = false
+            buttonsHide.running = true
         }
 
-        onPressAndHold: {
-            longPressed = true
-
-            if (!longLocked && !contextMenu.visible) {
-                var mapped = mapToItem(mainScope, mouse.x, mouse.y)
-                navigation.y = mapped.y - 150
-                if (navigation.y < 0)
-                    navigation.y = 0
-                else if (navigation.y + navigation.height > parent.height)
-                    navigation.y = parent.height - navigation.height
-                navigation.visible = true
-            }
-        }
-
-        onPositionChanged: {
-            var mapped = mapToItem(mainScope, mouse.x, mouse.y)
-            deltaY = mY - mapped.y
-            if (!longPressed && Math.abs(deltaY) > 20) {
-                longLocked = true
-            }
-
-            if (webViewport.child().contentRect.y == 0) {
-                if (deltaY < 0) {
-                    if (edgeY == 0)
-                        edgeY = mapped.y
-
-                    var topDelta = mapped.y - edgeY;
-                    if (topDelta > addressLine.height)
-                        topDelta = addressLine.height;
-                    addressLine.anchors.topMargin = topDelta - addressLine.height;
-                }
-            }
-        }
-    }
-
-    OverlayContextMenu {
-        id: contextMenu
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.bottom: parent.bottom
-        anchors.bottomMargin: 5
-        width: Math.min(parent.width, parent.height) - 10
-        context: context
-    }
-
-    OverlayNavigation {
-        id: navigation
-        anchors.horizontalCenter: parent.horizontalCenter
-        viewport: webViewport
-
-        onContextMenuRequested: {
-            contextMenu.visible = true
+        function hideExceptBar() {
+            buttonsHide.running = false
+            buttonsShow.running = false
             navigation.visible = false
+            contextMenu.visible = false
+        }
+
+        PropertyAnimation {
+            id: buttonsHide
+            target: overlay
+            properties: "opacity"
+            from: 1.0; to: 0.01; duration: 300;
+            running: false
+        }
+
+        PropertyAnimation {
+            id: buttonsShow
+            target: overlay
+            properties: "opacity"
+            from: 0.01; to: 1.0; duration: 300;
+            running: false
+        }
+
+        PropertyAnimation {
+            id: menuHide
+            target: contextMenu
+            properties: "anchors.bottomMargin"
+            from: 5; to: 5-contextMenu.height; duration: 300
+            running: false
+        }
+
+        PropertyAnimation {
+            id: menuShow
+            target: contextMenu
+            properties: "anchors.bottomMargin"
+            from: 5-contextMenu.height; to: 5; duration: 300
+            running: false
+        }
+
+        MouseArea {
+            anchors.fill: parent
+            onPressed: {
+                addressLine.unfocusAddressBar()
+                overlay.hide()
+            }
+        }
+
+        AddressField {
+            id: addressLine
+            viewport: webViewport
+            anchors.top: parent.top
+            anchors.left: parent.left
+            anchors.right: parent.right
+
+            onAccepted: {
+                overlay.hideExceptBar()
+            }
+        }
+
+        OverlayContextMenu {
+            id: contextMenu
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.bottom: parent.bottom
+            anchors.bottomMargin: 5
+            width: Math.min(parent.width, parent.height) - 10
+            context: mozContext
+
+            onSelected: {
+                menuHide.running = true
+                overlay.hide()
+            }
+        }
+
+        OverlayNavigation {
+            id: navigation
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.top: addressLine.bottom
+            viewport: webViewport
+
+            onContextMenuRequested: {
+                navigation.visible = false
+                menuShow.running = true
+                contextMenu.visible = true
+            }
+
+            onSelected: {
+                overlay.hideExceptBar()
+            }
+        }
+
+        OverlayButton {
+            id: newPage
+
+            anchors.top: parent.top
+            anchors.left: parent.left
+            anchors.leftMargin: 10
+            anchors.topMargin: addressLine.height + 10
+
+            width: 100
+            height: 100
+
+            visible: navigation.visible
+
+            iconSource: "../icons/plus.png"
+
+            onClicked: {
+                mozContext.newWindow()
+                overlay.hide()
+            }
+        }
+
+        OverlayButton {
+            id: settings
+
+            anchors.top: parent.top
+            anchors.right: parent.right
+            anchors.rightMargin: 10
+            anchors.topMargin: addressLine.height + 10
+
+            width: 100
+            height: 100
+
+            visible: navigation.visible
+
+            iconSource: "../icons/settings.png"
+
+            onClicked: {
+                overlay.hide()
+                settingsPage.show()
+            }
         }
     }
 
-    OverlayButton {
-        id: newPage
-
-        anchors.bottom: parent.bottom
-        anchors.left: parent.left
-        anchors.leftMargin: 10
-        anchors.bottomMargin: 10
-
-        width: 100
-        height: 100
-
-        visible: navigation.visible
-
-        iconSource: "../icons/plus.png"
-
-        onClicked: {
-            context.newWindow()
-            navigation.visible = false
-        }
+    Settings {
+        id: settingsPage
+        width: parent.width
+        height: parent.height
+        x: parent.width
+        context: mozContext
     }
 
     Keys.onPressed: {

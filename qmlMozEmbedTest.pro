@@ -1,14 +1,18 @@
 CONFIG += link_pkgconfig
 TARGET = qmlMozEmbedTest
 contains(QT_MAJOR_VERSION, 4) {
-  QT += opengl declarative
   SOURCES += main.cpp qmlapplicationviewer.cpp WindowCreator.cpp
   HEADERS += qmlapplicationviewer.h WindowCreator.h
-  PKGCONFIG += QJson
+} else {
+  SOURCES += mainqt5.cpp
+}
 
+contains(QT_MAJOR_VERSION, 4) {
+  QT += opengl declarative
+  PKGCONFIG += QJson
 } else {
   QT += qml quick widgets
-  SOURCES += mainqt5.cpp
+  QT += opengl declarative
 }
 
 QML_FILES = qml/*.qml
@@ -29,7 +33,7 @@ CONFIG -= app_bundle
 isEmpty(QTEMBED_LIB) {
   PKGCONFIG += qtembedwidget x11
 } else {
-  LIBS+=$$QTEMBED_LIB
+  LIBS+=$$QTEMBED_LIB -lX11
 }
 
 isEmpty(DEFAULT_COMPONENT_PATH) {
@@ -41,7 +45,7 @@ isEmpty(DEFAULT_COMPONENT_PATH) {
 PREFIX = /usr
 
 isEmpty(OBJ_DEB_DIR) {
-  OBJ_DEB_DIR=obj-$$OBJ_ARCH-dir
+  OBJ_DEB_DIR=$$OBJ_BUILD_PATH
 }
 
 OBJECTS_DIR += ./$$OBJ_DEB_DIR

@@ -8,11 +8,11 @@ Item {
     property variant viewport
 
     visible: false
-
     width: 300
     height: 300
 
-    signal contextMenuRequested()	
+    signal contextMenuRequested()
+    signal selected()
 
     OverlayButton {
         id: goBack
@@ -28,8 +28,8 @@ Item {
         enabled: viewport.child().canGoBack
 
         onClicked: {
+            root.selected()
             viewport.child().goBack()
-            root.visible = false
         }
     }
 
@@ -47,8 +47,8 @@ Item {
         enabled: viewport.child().canGoForward
 
         onClicked: {
+            root.selected()
             viewport.child().goForward()
-            root.visible = false
         }
     }
 
@@ -65,13 +65,12 @@ Item {
         iconSource: viewport.child().loading ? "../icons/stop.png" : "../icons/refresh.png"
 
         onClicked: {
+            //root.selected()
             if (viewport.child().loading) {
                 viewport.child().stop()
             } else {
                 viewport.child().reload()
             }
-
-            root.visible = false
         }
     }
 
