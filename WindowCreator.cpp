@@ -58,7 +58,9 @@ MozWindowCreator::CreateNewWindow(const QString& url, quint32 *aUniqueID, quint3
     qWarning() << Q_FUNC_INFO << "Warning! Running without booster. This may be a bit slower.";
     QmlApplicationViewer* stackView = new QmlApplicationViewer();
     view = stackView;
+#ifndef Q_WS_MAEMO_5
     stackView->setOrientation(QmlApplicationViewer::ScreenOrientationAuto);
+#endif
 #endif
 
     QUrl qml;
@@ -118,6 +120,8 @@ MozWindowCreator::CreateNewWindow(const QString& url, quint32 *aUniqueID, quint3
         QMenuBar *menuBar = new QMenuBar(view);
         QMenu *menu = menuBar->addMenu("main menu");
         menu->addAction(newWindow);
+
+        view->setAttribute(Qt::WA_Maemo5AutoOrientation, true);
 
 #endif
 

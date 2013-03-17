@@ -344,7 +344,7 @@ FocusScope {
         }
 
         anchors {
-            top: statusBar.bottom
+            top: parent.top
             left: parent.left
             right: parent.right
             bottom: parent.bottom
