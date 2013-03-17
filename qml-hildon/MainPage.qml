@@ -323,6 +323,7 @@ FocusScope {
     QmlMozView {
         id: webViewport
         visible: true
+        parentid: createParentID
         focus: true
         property bool movingHorizontally : false
         property bool movingVertically : true
@@ -353,10 +354,24 @@ FocusScope {
         Connections {
             target: webViewport.child()
             onViewInitialized: {
+                qMozContext.setPref("browser.ui.touch.left", 32);
+                qMozContext.setPref("browser.ui.touch.right", 32);
+                qMozContext.setPref("browser.ui.touch.top", 48);
+                qMozContext.setPref("browser.ui.touch.bottom", 16);
+                qMozContext.setPref("browser.ui.touch.weight.visited", 120);
+                qMozContext.setPref("browser.download.folderList", 2); // 0 - Desktop, 1 - Downloads, 2 - Custom
+                webViewport.child().loadFrameScript("chrome://embedlite/content/embedhelper.js");
+                webViewport.child().addMessageListener("embed:alert");
+                webViewport.child().addMessageListener("embed:prompt");
+                webViewport.child().addMessageListener("embed:confirm");
+                webViewport.child().addMessageListener("embed:auth");
+                webViewport.child().addMessageListener("chrome:title")
                 webViewport.child().addMessageListener("context:info")
                 print("QML View Initialized");
                 if (startURL.length != 0) {
                     load(startURL);
+                } else {
+                    load("about:blank")
                 }
             }
             onViewAreaChanged: {
@@ -373,7 +388,7 @@ FocusScope {
             }
             onTitleChanged: {
                 pageTitleChanged(webViewport.child().title);
-                statusBar.titleText = webViewport.child().title;
+                //todo: change app title??
                 console.log(webViewport.child().title)
             }
             onUrlChanged: {
@@ -382,7 +397,8 @@ FocusScope {
             onRecvAsyncMessage: {
                 print("onRecvAsyncMessage:" + message + ", data:" + data);
                 if (message == "context:info") {
-                    console.log(data)
+                    console.log(data.LinkHref)
+                    console.log(data.ImageSrc)
                     contextMenu.linkHref = data.LinkHref
                     contextMenu.imgSrc = data.ImageSrc
                 }
@@ -411,8 +427,8 @@ FocusScope {
             }
             onHandleLongTap: {
 //                console.log('yay');
-                contextMenu.__globalMouseArea = globalMouseArea;
-                contextMenu.__updatePosition()
+                contextMenu.mouseX = point.x
+                contextMenu.mouseY = point.y
                 contextMenu.open()
                 viewport.enabled = false;
             }
@@ -476,22 +492,72 @@ FocusScope {
 //            contextMenu.open()
 //        }
 //    }
+//    Item {
+//        //workaround because hildon components
+//        //require a pageStack and we don't have
+//        //one for performance reasons
+//        id: pageStack
+//        property variant currentPage : Item { }
+//    }
+    Style{
+        id: platformStyle
+    }
 
-    ContextMenu {
+    Popup {
         id: contextMenu
         property string linkHref
         property string imgSrc
-        ContextMenuLayout {
+        property int mouseX
+        property int mouseY
 
+        function __updatePosition() {
+            x = Math.min(mouseX, appWindow.width - width);
+            y = Math.min(Math.abs(mouseY - height / 2), appWindow.height - height);
+        }
+
+        height: ctxLayout.height + platformStyle.paddingNormal * 2;
+        width: ctxLayout.width + platformStyle.paddingNormal * 2;
+
+        Column {
+            id: ctxLayout
+            ContextMenuItem {
+                text: "Duplicate window"
+                onClicked: qMozContext.newWindow(webViewport.child().url)
+            }
             ContextMenuItem {
                 text: qsTr("Open in new window")
-                onClicked: {
-                    qMozContext.newWindow(linkHref)
-                    mouse.accepted = true;
-
-                }
+                visible: contextMenu.linkHref.length
+                onClicked: qMozContext.newWindow(contextMenu.linkHref)
             }
+            ContextMenuItem {
+                text: qsTr("Copy link url")
+                visible: contextMenu.linkHref.length
+                onClicked: context.setClipboard(contextLinkHref)
+            }
+            ContextMenuItem {
+                visible: contextMenu.imgSrc.length
+                text: "Open image in new window"
+                onClicked: qMozContext.newWindow(contextMenu.imgSrc)
+            }
+            ContextMenuItem {
+                visible: contextMenu.imgSrc.length
+                text: "Copy image url"
+                onClicked: context.setClipboard(contextImageSrc)
+            }
+            anchors {
+                top: parent.top
+                left: parent.left
+                margins: platformStyle.paddingNormal
+            }
+            z: 1001
         }
+        BorderImage {
+            anchors.fill: parent
+            smooth: true
+            border { left: 20; right: 20; top: 20; bottom: 20 }
+            source: "image://theme/ContextMenu"
+        }
+        onOpened: __updatePosition();
         onClosed: viewport.enabled = true
     }
 

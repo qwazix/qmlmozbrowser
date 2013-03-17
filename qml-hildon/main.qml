@@ -15,12 +15,4 @@ FocusScope {
     anchors.fill: parent
     MainPage {
     }
-
-    MouseArea{
-        anchors.fill: parent
-        id: globalMouseArea
-        onPressed: {
-            mouse.accepted = false;
-        }
-    }
 }
