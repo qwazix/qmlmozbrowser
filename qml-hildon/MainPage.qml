@@ -33,57 +33,6 @@ FocusScope {
         addressLine.selectAll()
     }
 
-    StatusBar{
-        id: statusBar
-        property string backPressedState: backButtonPressed ? "Pressed" : ""
-        onTitleAreaClicked: mainMenu.open()
-        anchors.left: parent.left
-        anchors.right: parent.right
-        onBackClicked: Qt.quit()
-        backButtonIconSource: "image://theme/wmCloseIcon" + backPressedState
-        titleText: "Alopex"
-        showMenuIndicator: true
-        state: "visible"
-        states: [
-            State {
-                name: "hidden"
-                PropertyChanges {
-                    target: statusBar;
-                    height: 0
-                    visible: false
-                }
-            },
-            State {
-                name: "visible"
-                PropertyChanges {
-                    target: statusBar;
-                    visible: true
-                    height: 56
-                }
-            }
-        ]
-        transitions: [
-                      Transition {
-//                          from: "hidden"
-                          to: "visible"
-                          PropertyAnimation {
-                              target: statusBar;
-                              properties: "height";
-                              duration: 100
-                          }
-                      },
-                       Transition {
-//                           from: "visible"
-                           to: "hidden"
-                           PropertyAnimation {
-                               target: statusBar;
-                               properties: "height";
-                               duration: 100
-                           }
-                       }
-                   ]
-    }
-
     Menu {
         id: mainMenu
         tools: MenuLayout {
@@ -171,14 +120,14 @@ FocusScope {
         height: 70 + Cst.swipePadding
         anchors.left: parent.left
         anchors.right: parent.right
-        state: "visible"
+        state: "hidden"
         color: "transparent";
         z: 20
         MouseArea{
             anchors.fill: parent
             drag {
 
-                target: statusBar.state=="hidden"?navigationBar:null
+                target: navigationBar
                 axis: Drag.YAxis
                 minimumY: mainScope.height - navigationBar.height
                 maximumY: mainScope.height - (navigationBar.height - navigationBarToolBar.height)
@@ -306,12 +255,13 @@ FocusScope {
                     id: showFullScreen
                     iconSource: "../icons/fullscreen.svg"
                     onClicked: {
-                        if (statusBar.state=="visible"){
-                            navigationBar.state = "hidden"
-                            statusBar.state = "hidden"
-                        } else {
+                        if (windowHelper.isFullScreen()){
+                            console.log("fromFullToNot")
                             navigationBar.state = "visible"
-                            statusBar.state = "visible"
+                            windowHelper.setFullScreen(false);
+                        } else {
+                            navigationBar.state = "hidden"
+                            windowHelper.setFullScreen(true);
                         }
 
                     }
@@ -434,7 +384,7 @@ FocusScope {
             onRecvAsyncMessage: {
                 print("onRecvAsyncMessage:" + message + ", data:" + data);
                 if (message == "context:info") {
-                    console.log(data.LinkHref)
+                    console.log(data)
                     contextMenu.linkHref = data.LinkHref
                     contextMenu.imgSrc = data.ImageSrc
                 }

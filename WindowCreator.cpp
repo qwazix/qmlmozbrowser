@@ -7,6 +7,13 @@
 #include <QDebug>
 #include <qdeclarativemozview.h>
 #include "qmlapplicationviewer.h"
+#include "windowhelper.h"
+
+#ifdef Q_WS_MAEMO_5
+#include <QAction>
+#include <QMenu>
+#include <QMenuBar>
+#endif
 
 MozWindowCreator::MozWindowCreator(const QString& aQmlstring, const bool& aGlwidget, const bool& aIsFullScreen)
 {
@@ -20,6 +27,19 @@ MozWindowCreator::newWindowRequested(const QString& url, const unsigned& aParent
 {
     quint32 uniqueID = 0;
     QDeclarativeView* view = CreateNewWindow(url, &uniqueID, aParentID);
+    mWindowStack.append(view);
+    if (mIsFullScreen)
+        view->showFullScreen();
+    else
+        view->show();
+    return uniqueID;
+}
+
+quint32
+MozWindowCreator::newEmptyWindow()
+{
+    quint32 uniqueID = 0;
+    QDeclarativeView* view = CreateNewWindow("about:blank", &uniqueID, 0);
     mWindowStack.append(view);
     if (mIsFullScreen)
         view->showFullScreen();
@@ -87,6 +107,19 @@ MozWindowCreator::CreateNewWindow(const QString& url, quint32 *aUniqueID, quint3
     view->setWindowFlags(Qt::Window | Qt::WindowTitleHint |
                          Qt::WindowMinMaxButtonsHint |
                          Qt::WindowCloseButtonHint);
+
+
+    QDeclarativeContext * context  = view->rootContext();
+    context->setContextProperty("windowHelper", new WindowHelper(view));
+
+#ifdef Q_WS_MAEMO_5
+        QAction *newWindow = new QAction("&New Window", view);
+        connect(newWindow , SIGNAL(triggered()), this, SLOT(newEmptyWindow()));
+        QMenuBar *menuBar = new QMenuBar(view);
+        QMenu *menu = menuBar->addMenu("main menu");
+        menu->addAction(newWindow);
+
+#endif
 
     return view;
 }

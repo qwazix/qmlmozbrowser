@@ -38,6 +38,7 @@
 #include "qdeclarativemozview.h"
 #include "qgraphicsmozview.h"
 #include <QtDeclarative>
+
 #if defined(Q_WS_X11)
 #include <X11/Xlib.h>
 #endif

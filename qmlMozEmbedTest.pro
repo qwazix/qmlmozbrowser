@@ -70,3 +70,9 @@ OTHER_FILES += \
     qml-hildon/dialogs/AlertDialog.qml \
     qml-hildon/constants.js \
     icons-hildon/splash.svg
+
+HEADERS += \
+    windowhelper.h
+
+SOURCES += \
+    windowhelper.cpp
