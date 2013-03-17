@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
     application->setQuitOnLastWindowClosed(true);
 
     QString path;
-    QString urlstring;
+    QString urlstring = "file:///opt/qmlMozEmbedTest/splash/splash.html";
     QString qmlstring;
     bool glwidget = true;
 #ifdef __arm__
