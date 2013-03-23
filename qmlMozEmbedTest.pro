@@ -18,6 +18,8 @@ contains(QT_MAJOR_VERSION, 4) {
 QML_FILES = qml/*.qml
 RESOURCES = qmlMozEmbedTest.qrc
 
+PREFIX = /usr
+
 maemo5 {
     QML_FILES = qml-hildon/*.qml
     RESOURCES = qmlMozEmbedTestHildon.qrc
@@ -25,6 +27,17 @@ maemo5 {
     splash.files = icons-hildon/splash.html \
                    icons-hildon/splash.png
     INSTALLS += splash
+    icon.path = /usr/share/icons/hicolor/96x96/apps
+    icon.files = icons-hildon/alopex.png
+    INSTALLS += icon
+    desktop.path = /usr/share/applications/hildon
+    desktop.files = icons-hildon/alopex.desktop
+    INSTALLS += desktop
+    symlink.path = /usr/bin
+    symlink.files = icons-hildon/qmlMozEmbedTest
+    INSTALLS += symlink
+
+    PREFIX = /opt/usr
 }
 
 TEMPLATE = app
@@ -42,7 +55,6 @@ isEmpty(DEFAULT_COMPONENT_PATH) {
   DEFINES += DEFAULT_COMPONENTS_PATH=\"\\\"$$DEFAULT_COMPONENT_PATH\\\"\"
 }
 
-PREFIX = /usr
 
 isEmpty(OBJ_DEB_DIR) {
   OBJ_DEB_DIR=$$OBJ_BUILD_PATH
@@ -73,7 +85,6 @@ OTHER_FILES += \
     qml-hildon/dialogs/AuthenticationDialog.qml \
     qml-hildon/dialogs/AlertDialog.qml \
     qml-hildon/constants.js \
-    icons-hildon/splash.svg
 
 HEADERS += \
     windowhelper.h

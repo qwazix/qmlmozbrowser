@@ -368,9 +368,9 @@ FocusScope {
                 webViewport.child().addMessageListener("chrome:title")
                 webViewport.child().addMessageListener("context:info")
                 print("QML View Initialized");
-                if (startURL.length != 0) {
-                    load(startURL);
-                } else {
+                if (startURL.length != 0 && createParentID == 0) {
+                    load(startURL)
+                } else if (createParentID == 0) {
                     load("about:blank")
                 }
             }
@@ -550,6 +550,9 @@ FocusScope {
                 margins: platformStyle.paddingNormal
             }
             z: 1001
+            function closeLayout(){
+                parent.close()
+            }
         }
         BorderImage {
             anchors.fill: parent
