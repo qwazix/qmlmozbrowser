@@ -31,6 +31,7 @@ FocusScope {
     function focusAddressBar() {
         addressLine.forceActiveFocus()
         addressLine.selectAll()
+        navigationBar.state = "visible"
     }
 
     Menu {
@@ -492,13 +493,14 @@ FocusScope {
 //            contextMenu.open()
 //        }
 //    }
-//    Item {
-//        //workaround because hildon components
-//        //require a pageStack and we don't have
-//        //one for performance reasons
-//        id: pageStack
-//        property variant currentPage : Item { }
-//    }
+    Item {
+        //workaround because hildon components
+        //require a pageStack and we don't have
+        //one for performance reasons
+        id: pageStack
+        anchors.fill: parent
+        property variant currentPage : Item { }
+    }
     Style{
         id: platformStyle
     }

@@ -1,5 +1,4 @@
 <RCC>
-    <qresource prefix="/"/>
     <qresource prefix="/qml">
         <file alias="main.qml">qml-hildon/main.qml</file>
         <file alias="MainPage.qml">qml-hildon/MainPage.qml</file>
@@ -13,6 +12,7 @@
         <file alias="DialogLineInput.qml">qml-hildon/dialogs/DialogLineInput.qml</file>
         <file alias="PromptDialog.qml">qml-hildon/dialogs/PromptDialog.qml</file>
         <file alias="constants.js">qml-hildon/constants.js</file>
+        <file alias="Settings.qml">qml-hildon/Settings.qml</file>
     </qresource>
     <qresource prefix="/icons">
         <file alias="back.svg">icons-hildon/back.svg</file>

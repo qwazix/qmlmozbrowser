@@ -14,6 +14,7 @@
 #include <QAction>
 #include <QMenu>
 #include <QMenuBar>
+#include "qmldialog.h"
 #endif
 
 MozWindowCreator::MozWindowCreator(const QString& aQmlstring, const bool& aGlwidget, const bool& aIsFullScreen)
@@ -117,15 +118,24 @@ MozWindowCreator::CreateNewWindow(const QString& url, quint32 *aUniqueID, quint3
     context->setContextProperty("windowHelper", new WindowHelper(view));
 
 #ifdef Q_WS_MAEMO_5
-        QAction *newWindow = new QAction("&New Window", view);
-        connect(newWindow , SIGNAL(triggered()), this, SLOT(newEmptyWindow()));
-        QMenuBar *menuBar = new QMenuBar(view);
-        QMenu *menu = menuBar->addMenu("main menu");
-        menu->addAction(newWindow);
+    QAction *newWindow = new QAction("&New Window", view);
+    QAction *settingsDialog = new QAction("&Settings", view);
+    connect(newWindow , SIGNAL(triggered()), this, SLOT(newEmptyWindow()));
+    connect(settingsDialog , SIGNAL(triggered()), this, SLOT(openSettings()));
+    QMenuBar *menuBar = new QMenuBar(view);
+    QMenu *menu = menuBar->addMenu("main menu");
+    menu->addAction(newWindow);
+    menu->addAction(settingsDialog);
 
-        view->setAttribute(Qt::WA_Maemo5AutoOrientation, true);
-
+    view->setAttribute(Qt::WA_Maemo5AutoOrientation, true);
 #endif
 
     return view;
+}
+
+void
+MozWindowCreator::openSettings(){
+    qDebug()<<"Opening Dialog...";
+    qmlDialog *dialog = new qmlDialog(QUrl("qrc:/qml/Settings.qml"));
+    dialog->exec();
 }

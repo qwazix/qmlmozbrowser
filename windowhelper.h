@@ -17,7 +17,7 @@ signals:
 public slots:
     void setFullScreen(bool);
     bool isFullScreen();
-    
+    void raise();
 };
 
 #endif // WINDOWHELPER_H

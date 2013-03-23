@@ -25,6 +25,10 @@ void WindowHelper::setFullScreen(bool state){
     }
 }
 
+void WindowHelper::raise(){
+    view->raise();
+}
+
 bool WindowHelper::isFullScreen(){
     bool isFullScreen = this->view->windowState() & Qt::WindowFullScreen;
     qDebug()<< isFullScreen;

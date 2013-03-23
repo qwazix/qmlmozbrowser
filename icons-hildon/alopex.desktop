@@ -1,0 +1,11 @@
+[Desktop Entry]
+Encoding=UTF-8
+Version=1.0
+Type=Application
+Terminal=false
+Name=alopex
+Exec=sh -c "LD_LIBRARY_PATH=/usr/lib/xulrunner-22.0a1 /opt/usr/bin/qmlMozEmbedTest"
+Icon=alopex
+X-Window-Icon=
+X-HildonDesk-ShowInToolbar=true
+X-Osso-Type=application/x-executable

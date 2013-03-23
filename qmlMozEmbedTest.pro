@@ -85,9 +85,12 @@ OTHER_FILES += \
     qml-hildon/dialogs/AuthenticationDialog.qml \
     qml-hildon/dialogs/AlertDialog.qml \
     qml-hildon/constants.js \
+    qml-hildon/Settings.qml
 
 HEADERS += \
-    windowhelper.h
+    windowhelper.h \
+    qmldialog.h
 
 SOURCES += \
-    windowhelper.cpp
+    windowhelper.cpp \
+    qmldialog.cpp

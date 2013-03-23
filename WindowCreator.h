@@ -9,6 +9,7 @@ public:
 public Q_SLOTS:
     quint32 newWindowRequested(const QString& url, const unsigned& aParentID);
     quint32 newEmptyWindow();
+    void openSettings();
 
 public:
     QList<QDeclarativeView*> mWindowStack;
