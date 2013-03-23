@@ -12,10 +12,36 @@ FocusScope {
 
     function load(address) {
         addressLine.text = address
-        webViewport.child().load(address)
+        webViewport.child.load(address)
     }
 
     QmlMozContext { id: mozContext }
+
+    function saveFile(url) {
+        var fileName = url.split("/")
+        fileName = fileName[fileName.length - 1]
+        var path = filePicker.getFileSync(1, QmlHelperTools.getStorageLocation(0), fileName)
+        if (path != "")
+            mozContext.child.sendObserve("embedui:download", { msg: "addDownload", from: url, to: path })
+    }
+
+    Connections {
+        target: mozContext.child
+        onOnInitialized: {
+            print("QmlMozContext Initialized");
+            mozContext.setPref("browser.download.manager.retention", 2);
+            mozContext.setPref("browser.ui.touch.left", 32);
+            mozContext.setPref("browser.ui.touch.right", 32);
+            mozContext.setPref("browser.ui.touch.top", 48);
+            mozContext.setPref("browser.ui.touch.bottom", 16);
+            mozContext.setPref("browser.ui.touch.weight.visited", 120);
+            mozContext.setPref("browser.download.folderList", 2); // 0 - Desktop, 1 - Downloads, 2 - Custom
+            mozContext.setPref("browser.download.useDownloadDir", false); // Invoke filepicker instead of immediate download to ~/Downloads
+            mozContext.setPref("browser.download.manager.retention", 2);
+            mozContext.child.addObserver("embed:download");
+            mozContext.child.sendObserve("embedui:download", { msg: "requestDownloadsList" })
+        }
+    }
 
     QmlMozView {
         id: webViewport
@@ -23,7 +49,7 @@ FocusScope {
         objectName: "webViewport"
         visible: true
         focus: true
-        enabled: !(alertDlg.visible || confirmDlg.visible || promptDlg.visible || authDlg.visible || overlay.visible || settingsPage.x==0)
+        enabled: !(alertDlg.visible || confirmDlg.visible || promptDlg.visible || authDlg.visible || overlay.visible || settingsPage.x==0 || downloadsPage.x==0 || filePicker.visible)
         property bool movingHorizontally: false
         property bool movingVertically: true
         property variant visibleArea: QtObject {
@@ -48,36 +74,25 @@ FocusScope {
         anchors.fill: parent
 
         Connections {
-            target: webViewport.child()
+            target: webViewport.child
             onViewInitialized: {
-                mozContext.setPref("browser.ui.touch.left", 32);
-                mozContext.setPref("browser.ui.touch.right", 32);
-                mozContext.setPref("browser.ui.touch.top", 48);
-                mozContext.setPref("browser.ui.touch.bottom", 16);
-                mozContext.setPref("browser.ui.touch.weight.visited", 120);
-                mozContext.setPref("browser.download.folderList", 2); // 0 - Desktop, 1 - Downloads, 2 - Custom
-                mozContext.setPref("browser.download.useDownloadDir", false); // Invoke filepicker instead of immediate download to ~/Downloads
-                webViewport.child().loadFrameScript("chrome://embedlite/content/embedhelper.js");
-                webViewport.child().addMessageListener("embed:alert");
-                webViewport.child().addMessageListener("embed:prompt");
-                webViewport.child().addMessageListener("embed:confirm");
-                webViewport.child().addMessageListener("embed:auth");
-                webViewport.child().addMessageListener("chrome:title")
-                webViewport.child().addMessageListener("context:info")
+                webViewport.child.loadFrameScript("chrome://embedlite/content/embedhelper.js");
+                webViewport.child.addMessageListener("embed:filepicker");
+                webViewport.child.addMessageListener("context:info");
                 print("QML View Initialized")
                 if (startURL.length != 0 && createParentID == 0) {
                     load(startURL)
                 }
-                else {
+                else if (createParentID == 0) {
                     load("about:blank")
                 }
             }
             onLoadingChanged: {
-                var isLoading = webViewport.child().loading
+                var isLoading = webViewport.child.loading
                 if (isLoading && !overlay.visible) {
                     overlay.showAddressBar()
                 }
-                else if (!isLoading && overlay.visible && !navigation.visible && !contextMenu.visible && !addressLine.inputFocus) {
+                else if (!isLoading && overlay.visible && !navigation.visible && !contextMenu.visible && !addressLine.inputFocus && !filePicker.visible) {
                     overlay.hide()
                 }
             }
@@ -93,32 +108,60 @@ FocusScope {
                 overlay.show(posY)
             }
             onViewAreaChanged: {
-                var r = webViewport.child().contentRect
-                var offset = webViewport.child().scrollableOffset
-                var s = webViewport.child().scrollableSize
+                var r = webViewport.child.contentRect
+                var offset = webViewport.child.scrollableOffset
+                var s = webViewport.child.scrollableSize
                 webViewport.visibleArea.widthRatio = r.width / s.width
                 webViewport.visibleArea.heightRatio = r.height / s.height
                 webViewport.visibleArea.xPosition = offset.x
                         * webViewport.visibleArea.widthRatio
-                        * webViewport.child().resolution
+                        * webViewport.child.resolution
                 webViewport.visibleArea.yPosition = offset.y
                         * webViewport.visibleArea.heightRatio
-                        * webViewport.child().resolution
+                        * webViewport.child.resolution
                 webViewport.movingHorizontally = true
                 webViewport.movingVertically = true
                 scrollTimer.restart()
             }
             onTitleChanged: {
-                pageTitleChanged(webViewport.child().title)
+                pageTitleChanged(webViewport.child.title)
             }
             onRecvAsyncMessage: {
                 print("onRecvAsyncMessage:" + message + ", data:" + data)
-                if (message == "context:info") {
-                    contextMenu.contextLinkHref = data.LinkHref
-                    contextMenu.contextImageSrc = data.ImageSrc
-                    navigation.contextInfoAvialable = (contextMenu.contextLinkHref.length > 0 || contextMenu.contextImageSrc.length > 0)
-
-                }
+                switch (message) {
+                    case "context:info": {
+                        contextMenu.contextLinkHref = data.LinkHref
+                        contextMenu.contextImageSrc = data.ImageSrc
+                        navigation.contextInfoAvialable = (contextMenu.contextLinkHref.length > 0 || contextMenu.contextImageSrc.length > 0)
+                        break;
+                    }
+                    case "embed:filepicker": {
+                        filePicker.show(data.mode, QmlHelperTools.getStorageLocation(0), data.title, data.name, data.winid)
+                        break;
+                    }
+                    case "embed:alert": {
+                        print("onAlert: title:" + data.title + ", msg:" + data.text + " winid:" + data.winid)
+                        alertDlg.show(data.title, data.text, data.winid)
+                        break;
+                    }
+                    case "embed:confirm": {
+                        print("onConfirm: title:" + data.title + ", data.text:" + data.text)
+                        confirmDlg.show(data.title, data.text, data.winid)
+                        break;
+                    }
+                    case "embed:prompt": {
+                        print("onPrompt: title:" + data.title + ", msg:" + data.text)
+                        promptDlg.show(data.title, data.text, data.defaultValue, data.winid)
+                        break;
+                    }
+                    case "embed:auth": {
+                        print("onAuthRequired: title:" + data.title + ", msg:" + data.text + ", winid:" + data.winid)
+                        authDlg.show(data.title, data.text, data.defaultValue, data.winid)
+                        break;
+                    }
+                    default:
+                        break;
+                    }
             }
             onRecvSyncMessage: {
                 print("onRecvSyncMessage:" + message + ", data:" + data)
@@ -129,28 +172,12 @@ FocusScope {
                     }
                 }
             }
-            onAlert: {
-                print("onAlert: title:" + data.title + ", msg:" + data.text + " winid:" + data.winid)
-                alertDlg.show(data.title, data.text, data.winid)
-            }
-            onConfirm: {
-                print("onConfirm: title:" + data.title + ", data.text:" + data.text)
-                confirmDlg.show(data.title, data.text, data.winid)
-            }
-            onPrompt: {
-                print("onPrompt: title:" + data.title + ", msg:" + data.text)
-                promptDlg.show(data.title, data.text, data.defaultValue, data.winid)
-            }
-            onAuthRequired: {
-                print("onAuthRequired: title:" + data.title + ", msg:" + data.text + ", winid:" + data.winid)
-                authDlg.show(data.title, data.text, data.defaultValue, data.winid)
-            }
         }
 
         AlertDialog {
             id: alertDlg
             onHandled: {
-                webViewport.child().sendAsyncMessage("alertresponse", {
+                webViewport.child.sendAsyncMessage("alertresponse", {
                                                          winid: winid,
                                                          checkval: alertDlg.checkval,
                                                          accepted: alertDlg.accepted
@@ -161,7 +188,7 @@ FocusScope {
         ConfirmDialog {
             id: confirmDlg
             onHandled: {
-                webViewport.child().sendAsyncMessage("confirmresponse", {
+                webViewport.child.sendAsyncMessage("confirmresponse", {
                                                          winid: winid,
                                                          checkval: confirmDlg.checkval,
                                                          accepted: confirmDlg.accepted
@@ -172,7 +199,7 @@ FocusScope {
         PromptDialog {
             id: promptDlg
             onHandled: {
-                webViewport.child().sendAsyncMessage("promptresponse", {
+                webViewport.child.sendAsyncMessage("promptresponse", {
                                                          winid: winid,
                                                          checkval: promptDlg.checkval,
                                                          accepted: promptDlg.accepted,
@@ -184,7 +211,7 @@ FocusScope {
         AuthenticationDialog {
             id: authDlg
             onHandled: {
-                webViewport.child().sendAsyncMessage("authresponse", {
+                webViewport.child.sendAsyncMessage("authresponse", {
                                                          winid: winid,
                                                          checkval: authDlg.checkval,
                                                          accepted: authDlg.accepted,
@@ -357,6 +384,27 @@ FocusScope {
                 settingsPage.show()
             }
         }
+
+        OverlayButton {
+            id: downloads
+
+            anchors.bottom: parent.bottom
+            anchors.right: parent.right
+            anchors.rightMargin: 10
+            anchors.bottomMargin: 10
+
+            width: 100
+            height: 100
+
+            visible: navigation.visible
+
+            iconSource: "../icons/download.png"
+
+            onClicked: {
+                overlay.hide()
+                downloadsPage.show()
+            }
+        }
     }
 
     Settings {
@@ -365,6 +413,28 @@ FocusScope {
         height: parent.height
         x: parent.width
         context: mozContext
+    }
+
+    Downloads {
+        id: downloadsPage
+        width: parent.width
+        height: parent.height
+        x: parent.width
+        context: mozContext
+    }
+
+    FilePicker {
+        id: filePicker
+        anchors.fill: parent
+        onSelected: {
+            filePicker.visible = false
+            console.log("FilePicker selected: " + path + " accepted: " + accepted)
+            webViewport.child.sendAsyncMessage("filepickerresponse", {
+                                                         winid: winid,
+                                                         accepted: accepted,
+                                                         items: path
+                                                     })
+        }
     }
 
     Keys.onPressed: {

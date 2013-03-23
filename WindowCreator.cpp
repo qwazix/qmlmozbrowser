@@ -7,6 +7,7 @@
 #include <QDebug>
 #include <qdeclarativemozview.h>
 #include "qmlapplicationviewer.h"
+#include "qmlhelpertools.h"
 #include "windowhelper.h"
 
 #ifdef Q_WS_MAEMO_5
@@ -81,6 +82,7 @@ MozWindowCreator::CreateNewWindow(const QString& url, quint32 *aUniqueID, quint3
 
     view->rootContext()->setContextProperty("startURL", QVariant(url));
     view->rootContext()->setContextProperty("createParentID", QVariant(aParentID));
+    view->rootContext()->setContextProperty("QmlHelperTools", new QmlHelperTools(this));
     view->setSource(qml);
     QObject* item = view->rootObject()->findChild<QObject*>("mainScope");
     if (item) {
