@@ -4,10 +4,13 @@
 #include <QVariant>
 #include <QGLWidget>
 #include <QDeclarativeContext>
+#include <QDeclarativeEngine>
 #include <QDebug>
 #include <qdeclarativemozview.h>
 #include "qmlapplicationviewer.h"
 #include "qmlhelpertools.h"
+#include "qmozcontext.h"
+
 #include "windowhelper.h"
 
 #ifdef Q_WS_MAEMO_5
@@ -78,12 +81,15 @@ MozWindowCreator::CreateNewWindow(const QString& url, quint32 *aUniqueID, quint3
     // See NEMO#415 for an explanation of why this may be necessary.
     if (glwidget && !getenv("SWRENDER"))
         view->setViewport(new QGLWidget);
-    else
+    else {
         qDebug() << "Not using QGLWidget viewport";
-
+        QMozContext::GetInstance()->setIsAccelerated(false);
+    }
+    view->engine()->setOfflineStoragePath(QString("%1/.mozilla/").arg(QDir::homePath()));
     view->rootContext()->setContextProperty("startURL", QVariant(url));
     view->rootContext()->setContextProperty("createParentID", QVariant(aParentID));
     view->rootContext()->setContextProperty("QmlHelperTools", new QmlHelperTools(this));
+    view->rootContext()->setContextProperty("MozContext", QMozContext::GetInstance());
     view->setSource(qml);
     QObject* item = view->rootObject()->findChild<QObject*>("mainScope");
     if (item) {

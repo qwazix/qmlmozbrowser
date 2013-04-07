@@ -34,6 +34,7 @@
 #include <QDebug>
 #include <QStringList>
 #include <QDir>
+#include <QTimer>
 #include "qmlapplicationviewer.h"
 #include "qdeclarativemozview.h"
 #include "qgraphicsmozview.h"
@@ -116,7 +117,6 @@ int main(int argc, char *argv[])
     if (!path.isEmpty())
         QDir::setCurrent(path);
 
-    qmlRegisterType<QmlMozContext>("QtMozilla", 1, 0, "QmlMozContext");
     qmlRegisterType<QGraphicsMozView>("QtMozilla", 1, 0, "QGraphicsMozView");
     qmlRegisterType<QDeclarativeMozView>("QtMozilla", 1, 0, "QmlMozView");
 
@@ -146,6 +146,9 @@ int main(int argc, char *argv[])
 //    QMozContext::GetInstance()->addObserver("history:checkurivisited");
 //    QMozContext::GetInstance()->addObserver("history:markurivisited");
 
+    QObject::connect(application, SIGNAL(lastWindowClosed()),
+                     QMozContext::GetInstance(), SLOT(stopEmbedding()));
+    QTimer::singleShot(0, QMozContext::GetInstance(), SLOT(runEmbedding()));
     int retval = application->exec();
     qDebug() << "Exiting from Application!!!";
     return retval;

@@ -15,6 +15,11 @@
         <file>icons/download-start.png</file>
         <file>icons/download-stop.png</file>
         <file>icons/download.png</file>
+        <file>icons/history.png</file>
+        <file>icons/context-window-url2.png</file>
+        <file>icons/context-window-image2.png</file>
+        <file>icons/switch-on.png</file>
+        <file>icons/switch-off.png</file>
 
         <file>qml/main.qml</file>
         <file>qml/main_ref.qml</file>
@@ -39,6 +44,11 @@
         <file>qml/Checkbox.qml</file>
         <file>qml/FilePicker.qml</file>
         <file>qml/Downloads.qml</file>
+        <file>qml/PermissionsDialog.qml</file>
+        <file>qml/Selection.qml</file>
+        <file>qml/Config.qml</file>
+        <file>qml/LoginDialog.qml</file>
+        <file>qml/History.qml</file>
 
         <file alias="qml/Dialog.qml">qml/dialogs/Dialog.qml</file>
         <file alias="qml/AlertDialog.qml">qml/dialogs/AlertDialog.qml</file>

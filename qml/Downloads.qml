@@ -5,14 +5,14 @@ Rectangle {
     id : root
     visible: true
     color: "white"
-    property variant context
 
     Connections {
-        target: context.child
+        target: MozContext
         onRecvObserve: {
             if (message == "embed:download") {
                 switch (data.msg) {
                     case "dl-list": {
+                        downloadsListModel.clear()
                         console.log("data count: " + data.list.length);
                         console.log("appending download items");
                         for (var i=0; i<data.list.length; i++) {
@@ -38,8 +38,7 @@ Rectangle {
 
     function show() {
         animShow.running = true
-        downloadsListModel.clear()
-        context.child.sendObserve("embedui:download", { msg: "requestDownloadsList" })
+        MozContext.sendObserve("embedui:download", { msg: "requestDownloadsList" })
     }
 
     function hide() {
@@ -173,7 +172,7 @@ Rectangle {
         model: downloadsListModel
         delegate: Rectangle {
             width: parent.width-border.width
-            height: progress.height + infoText.height + fromText.height + toText.height + controls.height + 20 + (controls.visible ? 10 : 0)
+            height: content.height
             property bool showControls: false
             radius: 5
             color: showControls ? "#dddddd" : "#f0f0f0"
@@ -181,7 +180,7 @@ Rectangle {
             border.color: stateToColor(model.state)
 
             Connections {
-                target: context.child
+                target: MozContext
                 onRecvObserve: {
                     if (message == "embed:download") {
                         if (data.id == id) {
@@ -195,7 +194,6 @@ Rectangle {
                                 }
                                 case "dl-state":
                                 case "dl-security": {
-                                    console.log("download id:" + data.id + " changed state to:" + data.state)
                                     downloadsListModel.setProperty(index, "state", data.state)
                                     break;
                                 }
@@ -219,8 +217,13 @@ Rectangle {
 
             Item {
                 id: content
-                anchors.fill: parent
-                anchors.margins: 10
+                anchors.top: parent.top
+                anchors.topMargin: 10
+                anchors.left: parent.left
+                anchors.leftMargin: 10
+                anchors.right: parent.right
+                anchors.rightMargin: 10
+                height: progress.height + infoText.height + fromText.height + toText.height + controls.height + 20 + (controls.visible ? 10 : 0)
 
                 Rectangle {
                     color: "white"
@@ -261,7 +264,7 @@ Rectangle {
                     anchors.top: progress.bottom
                     font.pixelSize: 20
                     text: bytesToSize(cur) + " of " + bytesToSize(max) + " | " + percent + "%\n"
-                        + stateToText(model.state) + " | Speed: " + bytesToSize(speed) + "/s"
+                        + stateToText(model.state) + (model.state == 0 ? (" | Speed: " + bytesToSize(speed) + "/s") : "" )
                 }
 
                 Text {
@@ -313,7 +316,7 @@ Rectangle {
                         visible: (model.state == 0 || model.state == 4)
                         onClicked: {
                             console.log("pauseResumeButton clicked")
-                            context.child.sendObserve("embedui:download", { msg: (model.state == 0 ? "pauseDownload" : "resumeDownload"), id: id })
+                            MozContext.sendObserve("embedui:download", { msg: (model.state == 0 ? "pauseDownload" : "resumeDownload"), id: id })
                         }
                     }
 
@@ -327,7 +330,7 @@ Rectangle {
                         visible: (model.state == 0 || model.state == 4)
                         onClicked: {
                             console.log("stopButton clicked")
-                            context.child.sendObserve("embedui:download", { msg: "cancelDownload", id: id })
+                            MozContext.sendObserve("embedui:download", { msg: "cancelDownload", id: id })
                         }
                     }
 
@@ -341,7 +344,7 @@ Rectangle {
                         visible: (model.state != 0 && model.state != 4)
                         onClicked: {
                             console.log("removeButton clicked")
-                            context.child.sendObserve("embedui:download", { msg: "retryDownload", id: id })
+                            MozContext.sendObserve("embedui:download", { msg: "retryDownload", id: id })
                         }
                     }
 
@@ -355,7 +358,7 @@ Rectangle {
                         visible: (model.state != 0 && model.state != 4)
                         onClicked: {
                             console.log("removeButton clicked")
-                            context.child.sendObserve("embedui:download", { msg: "removeDownload", id: id })
+                            MozContext.sendObserve("embedui:download", { msg: "removeDownload", id: id })
                             downloadsListModel.remove(index)
                         }
                     }

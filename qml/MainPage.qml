@@ -15,31 +15,33 @@ FocusScope {
         webViewport.child.load(address)
     }
 
-    QmlMozContext { id: mozContext }
-
     function saveFile(url) {
         var fileName = url.split("/")
         fileName = fileName[fileName.length - 1]
         var path = filePicker.getFileSync(1, QmlHelperTools.getStorageLocation(0), fileName)
         if (path != "")
-            mozContext.child.sendObserve("embedui:download", { msg: "addDownload", from: url, to: path })
+            MozContext.sendObserve("embedui:download", { msg: "addDownload", from: url, to: path })
     }
 
     Connections {
-        target: mozContext.child
+        target: MozContext
         onOnInitialized: {
             print("QmlMozContext Initialized");
-            mozContext.setPref("browser.download.manager.retention", 2);
-            mozContext.setPref("browser.ui.touch.left", 32);
-            mozContext.setPref("browser.ui.touch.right", 32);
-            mozContext.setPref("browser.ui.touch.top", 48);
-            mozContext.setPref("browser.ui.touch.bottom", 16);
-            mozContext.setPref("browser.ui.touch.weight.visited", 120);
-            mozContext.setPref("browser.download.folderList", 2); // 0 - Desktop, 1 - Downloads, 2 - Custom
-            mozContext.setPref("browser.download.useDownloadDir", false); // Invoke filepicker instead of immediate download to ~/Downloads
-            mozContext.setPref("browser.download.manager.retention", 2);
-            mozContext.child.addObserver("embed:download");
-            mozContext.child.sendObserve("embedui:download", { msg: "requestDownloadsList" })
+            MozContext.setPref("browser.ui.touch.left", 32);
+            MozContext.setPref("browser.ui.touch.right", 32);
+            MozContext.setPref("browser.ui.touch.top", 48);
+            MozContext.setPref("browser.ui.touch.bottom", 16);
+            MozContext.setPref("browser.ui.touch.weight.visited", 120);
+            MozContext.setPref("browser.download.folderList", 2); // 0 - Desktop, 1 - Downloads, 2 - Custom
+            MozContext.setPref("browser.download.useDownloadDir", false); // Invoke filepicker instead of immediate download to ~/Downloads
+            MozContext.setPref("browser.download.manager.retention", 2);
+            MozContext.setPref("browser.helperApps.deleteTempFileOnExit", false);
+            MozContext.setPref("browser.download.manager.quitBehavior", 1);
+            MozContext.addObserver("embed:download");
+            MozContext.addObserver("embed:prefs");
+            MozContext.addObserver("embed:allprefs");
+            MozContext.addObserver("embed:logger");
+            MozContext.sendObserve("embedui:logger", { enabled: true })
         }
     }
 
@@ -49,7 +51,7 @@ FocusScope {
         objectName: "webViewport"
         visible: true
         focus: true
-        enabled: !(alertDlg.visible || confirmDlg.visible || promptDlg.visible || authDlg.visible || overlay.visible || settingsPage.x==0 || downloadsPage.x==0 || filePicker.visible)
+        enabled: !(alertDlg.visible || confirmDlg.visible || promptDlg.visible || authDlg.visible || overlay.visible || settingsPage.x==0 || downloadsPage.x==0 || filePicker.visible || selectCombo.visible || configPage.x==0 || historyPage.x==0)
         property bool movingHorizontally: false
         property bool movingVertically: true
         property variant visibleArea: QtObject {
@@ -77,8 +79,13 @@ FocusScope {
             target: webViewport.child
             onViewInitialized: {
                 webViewport.child.loadFrameScript("chrome://embedlite/content/embedhelper.js");
+                webViewport.child.loadFrameScript("chrome://embedlite/content/SelectHelper.js");
                 webViewport.child.addMessageListener("embed:filepicker");
                 webViewport.child.addMessageListener("context:info");
+                webViewport.child.addMessageListener("embed:permissions");
+                webViewport.child.addMessageListener("embed:select");
+                webViewport.child.addMessageListener("embed:login");
+                webViewport.child.addMessageListener("chrome:linkadded");
                 print("QML View Initialized")
                 if (startURL.length != 0 && createParentID == 0) {
                     load(startURL)
@@ -86,13 +93,17 @@ FocusScope {
                 else if (createParentID == 0) {
                     load("about:blank")
                 }
+                if (startURL == "about:blank") {
+                    navigation.anchors.topMargin = 0
+                    overlay.show((mainScope.height / 2) - (navigation.height / 2))
+                }
             }
             onLoadingChanged: {
                 var isLoading = webViewport.child.loading
                 if (isLoading && !overlay.visible) {
                     overlay.showAddressBar()
                 }
-                else if (!isLoading && overlay.visible && !navigation.visible && !contextMenu.visible && !addressLine.inputFocus && !filePicker.visible) {
+                else if (!isLoading && overlay.visible && !navigation.visible && !contextMenu.visible && !addressLine.inputFocus) {
                     overlay.hide()
                 }
             }
@@ -159,18 +170,56 @@ FocusScope {
                         authDlg.show(data.title, data.text, data.defaultValue, data.winid)
                         break;
                     }
+                    case "embed:permissions": {
+                        print("grant permissions required: title:" + data.title + ", host:" + data.host + ", uid:" + data.id)
+                        permissionsDlg.show(data.title, data.host, data.id)
+                        break;
+                    }
+                    case "embed:login": {
+                        print("login manager notification: name:" + data.name + ", bt1:" + data.buttons[0].label + ", bt2:" + data.buttons[1].label)
+                        loginDlg.show(data.name, data.id)
+                        break;
+                    }
                     default:
                         break;
                     }
             }
             onRecvSyncMessage: {
                 print("onRecvSyncMessage:" + message + ", data:" + data)
-                if (message == "embed:testsyncresponse") {
+                switch (message) {
+                case "embed:testsyncresponse":
                     response.message = {
                         val: "response",
                         numval: 0.04
                     }
+                    break;
+                case "embed:select":
+                    response.message = {
+                        button: selectCombo.showSync(data)
+                    }
+                    break;
                 }
+            }
+        }
+
+        PermissionsDialog {
+            id: permissionsDlg
+            onHandled: {
+                webViewport.child.sendAsyncMessage("embedui:premissions", {
+                                                        allow: permissionsDlg.accepted,
+                                                        checkedDontAsk: permissionsDlg.dontAsk,
+                                                        id: permissionsDlg.uid
+                                                     })
+            }
+        }
+
+        LoginDialog {
+            id: loginDlg
+            onHandled: {
+                webViewport.child.sendAsyncMessage("embedui:login", {
+                                                        buttonidx: loginDlg.accepted ? 0 : 1,
+                                                        id: data.id
+                                                     })
             }
         }
 
@@ -310,6 +359,10 @@ FocusScope {
             onAccepted: {
                 overlay.hideExceptBar()
             }
+
+            onRecentTriggered: {
+                navigation.visible = !showRecent
+            }
         }
 
         OverlayContextMenu {
@@ -318,7 +371,6 @@ FocusScope {
             anchors.bottom: parent.bottom
             anchors.bottomMargin: 5
             width: Math.min(parent.width, parent.height) - 10
-            context: mozContext
 
             onSelected: {
                 menuHide.running = true
@@ -359,7 +411,7 @@ FocusScope {
             iconSource: "../icons/plus.png"
 
             onClicked: {
-                mozContext.newWindow()
+                MozContext.newWindow("about:blank", 0)
                 overlay.hide()
             }
         }
@@ -382,6 +434,27 @@ FocusScope {
             onClicked: {
                 overlay.hide()
                 settingsPage.show()
+            }
+        }
+
+        OverlayButton {
+            id: history
+
+            anchors.bottom: parent.bottom
+            anchors.left: parent.left
+            anchors.leftMargin: 10
+            anchors.bottomMargin: 10
+
+            width: 100
+            height: 100
+
+            visible: navigation.visible
+
+            iconSource: "../icons/history.png"
+
+            onClicked: {
+                overlay.hide()
+                historyPage.show()
             }
         }
 
@@ -412,7 +485,6 @@ FocusScope {
         width: parent.width
         height: parent.height
         x: parent.width
-        context: mozContext
     }
 
     Downloads {
@@ -420,7 +492,21 @@ FocusScope {
         width: parent.width
         height: parent.height
         x: parent.width
-        context: mozContext
+    }
+
+    Config {
+        id: configPage
+        width: parent.width
+        height: parent.height
+        x: parent.width
+    }
+
+    History {
+        id: historyPage
+        width: parent.width
+        height: parent.height
+        x: parent.width
+        viewport: webViewport
     }
 
     FilePicker {
@@ -435,6 +521,11 @@ FocusScope {
                                                          items: path
                                                      })
         }
+    }
+
+    Selection {
+        id: selectCombo
+        anchors.fill: parent
     }
 
     Keys.onPressed: {
