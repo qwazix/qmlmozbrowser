@@ -25,7 +25,7 @@ FocusScope {
 
     function load(address) {
         addressLine.text = address;
-        viewport.child().load(address)
+        viewport.child.load(address)
     }
 
     function focusAddressBar() {
@@ -40,14 +40,13 @@ FocusScope {
             MenuItem{
                 text: qsTr("New window")
                 onClicked: {
-                    qMozContext.newWindow()
+                    MozContext.newWindow()
                 }
             }
         }
 
     }
 
-    QmlMozContext { id: qMozContext }
 
 
 //    Flickable{
@@ -98,7 +97,7 @@ FocusScope {
             anchors.fill: parent
             drag {
                 axis: Drag.XAxis
-                target: viewport.child().canGoBack?backOverlay:null
+                target: viewport.child.canGoBack?backOverlay:null
                 minimumX: appWindow.width - backOverlay.width
                 maximumX: appWindow.width -Cst.swipePadding
                 onActiveChanged: {
@@ -109,7 +108,7 @@ FocusScope {
                         backOverlay.state = "hidden"
                         viewport.enabled = true;
                         if (backOverlay.x < appWindow.width - backOverlay.width*0.8)
-                            viewport.child().goBack()
+                            viewport.child.goBack()
                     }
                 }
             }
@@ -150,7 +149,7 @@ FocusScope {
                 left: parent.left
             }
             height: 7
-            width: parent.width / 100 * viewport.child().loadProgress
+            width: parent.width / 100 * viewport.child.loadProgress
 //                    color: "blue"
             BorderImage {
                 anchors.fill: parent
@@ -159,7 +158,7 @@ FocusScope {
                 border.right: 1; border.bottom: 1
                 horizontalTileMode: BorderImage.Repeat
             }
-            visible: viewport.child().loadProgress != 100
+            visible: viewport.child.loadProgress != 100
         }
         Rectangle {
             id: navigationBarToolBar
@@ -183,34 +182,34 @@ FocusScope {
                     id: backButton
                     width: height
                     iconSource: "../icons/back.svg"
-                    visible: webViewport.child().canGoBack
+                    visible: webViewport.child.canGoBack
                     onClicked: {
                         console.log("going back")
-                        viewport.child().goBack()
+                        viewport.child.goBack()
                     }
                 }
                 ToolButton {
                     id: forwardButton
                     width: height
                     iconSource: "../icons/forward.svg"
-                    visible: webViewport.child().canGoForward
+                    visible: webViewport.child.canGoForward
                     onClicked: {
                         console.log("going forward")
-                        viewport.child().goForward()
+                        viewport.child.goForward()
                     }
                 }
                 ToolButton {
                     id: reloadButton
                     width: height
-                    iconSource: viewport.child().loading ? "../icons/stop.svg" : "../icons/reload.svg"
+                    iconSource: viewport.child.loading ? "../icons/stop.svg" : "../icons/reload.svg"
                     onClicked: {
-                        viewport.child();
+                        viewport.child;
                         if (viewport.canStop) {
                             console.log("stop loading")
                             viewport.stop()
                         } else {
                             console.log("reloading")
-                            viewport.child().reload()
+                            viewport.child.reload()
                         }
                     }
                 }
@@ -353,21 +352,21 @@ FocusScope {
             bottomMargin: appWindow.height - navigationBar.y - (navigationBar.height - navigationBarToolBar.height)
         }
         Connections {
-            target: webViewport.child()
+            target: webViewport.child
             onViewInitialized: {
-                qMozContext.setPref("browser.ui.touch.left", 32);
-                qMozContext.setPref("browser.ui.touch.right", 32);
-                qMozContext.setPref("browser.ui.touch.top", 48);
-                qMozContext.setPref("browser.ui.touch.bottom", 16);
-                qMozContext.setPref("browser.ui.touch.weight.visited", 120);
-                qMozContext.setPref("browser.download.folderList", 2); // 0 - Desktop, 1 - Downloads, 2 - Custom
-                webViewport.child().loadFrameScript("chrome://embedlite/content/embedhelper.js");
-                webViewport.child().addMessageListener("embed:alert");
-                webViewport.child().addMessageListener("embed:prompt");
-                webViewport.child().addMessageListener("embed:confirm");
-                webViewport.child().addMessageListener("embed:auth");
-                webViewport.child().addMessageListener("chrome:title")
-                webViewport.child().addMessageListener("context:info")
+                MozContext.setPref("browser.ui.touch.left", 32);
+                MozContext.setPref("browser.ui.touch.right", 32);
+                MozContext.setPref("browser.ui.touch.top", 48);
+                MozContext.setPref("browser.ui.touch.bottom", 16);
+                MozContext.setPref("browser.ui.touch.weight.visited", 120);
+                MozContext.setPref("browser.download.folderList", 2); // 0 - Desktop, 1 - Downloads, 2 - Custom
+                webViewport.child.loadFrameScript("chrome://embedlite/content/embedhelper.js");
+                webViewport.child.addMessageListener("embed:alert");
+                webViewport.child.addMessageListener("embed:prompt");
+                webViewport.child.addMessageListener("embed:confirm");
+                webViewport.child.addMessageListener("embed:auth");
+                webViewport.child.addMessageListener("chrome:title")
+                webViewport.child.addMessageListener("context:info")
                 print("QML View Initialized");
                 if (startURL.length != 0 && createParentID == 0) {
                     load(startURL)
@@ -376,24 +375,24 @@ FocusScope {
                 }
             }
             onViewAreaChanged: {
-                var r = webViewport.child().contentRect;
-                var offset = webViewport.child().scrollableOffset;
-                var s = webViewport.child().scrollableSize;
+                var r = webViewport.child.contentRect;
+                var offset = webViewport.child.scrollableOffset;
+                var s = webViewport.child.scrollableSize;
                 webViewport.visibleArea.widthRatio = r.width / s.width;
                 webViewport.visibleArea.heightRatio = r.height / s.height;
-                webViewport.visibleArea.xPosition = offset.x * webViewport.visibleArea.widthRatio * webViewport.child().resolution;
-                webViewport.visibleArea.yPosition = offset.y * webViewport.visibleArea.heightRatio * webViewport.child().resolution;
+                webViewport.visibleArea.xPosition = offset.x * webViewport.visibleArea.widthRatio * webViewport.child.resolution;
+                webViewport.visibleArea.yPosition = offset.y * webViewport.visibleArea.heightRatio * webViewport.child.resolution;
                 webViewport.movingHorizontally = true;
                 webViewport.movingVertically = true;
                 scrollTimer.restart();
             }
             onTitleChanged: {
-                pageTitleChanged(webViewport.child().title);
+                pageTitleChanged(webViewport.child.title);
                 //todo: change app title??
-                console.log(webViewport.child().title)
+                console.log(webViewport.child.title)
             }
             onUrlChanged: {
-                addressLine.text = webViewport.child().url;
+                addressLine.text = webViewport.child.url;
             }
             onRecvAsyncMessage: {
                 print("onRecvAsyncMessage:" + message + ", data:" + data);
@@ -410,22 +409,6 @@ FocusScope {
                     response.message = { "val" : "response", "numval" : 0.04 };
                 }
             }
-            onAlert: {
-                print("onAlert: title:" + data.title + ", msg:" + data.text + " winid:" + data.winid);
-                alertDlg.show(data.title, data.text, data.winid);
-            }
-            onConfirm: {
-                print("onConfirm: title:" + data.title + ", data.text:" + data.text);
-                confirmDlg.show(data.title, data.text, data.winid);
-            }
-            onPrompt: {
-                print("onPrompt: title:" + data.title + ", msg:" + data.text);
-                promptDlg.show(data.title, data.text, data.defaultValue, data.winid);
-            }
-            onAuthRequired: {
-                print("onAuthRequired: title:" + data.title + ", msg:" + data.text + ", winid:" + data.winid);
-                authDlg.show(data.title, data.text, data.defaultValue, data.winid);
-            }
             onHandleLongTap: {
 //                console.log('yay');
                 contextMenu.mouseX = point.x
@@ -437,7 +420,7 @@ FocusScope {
         AlertDialog {
             id: alertDlg
             onHandled: {
-                webViewport.child().sendAsyncMessage("alertresponse", {
+                webViewport.child.sendAsyncMessage("alertresponse", {
                     "winid" : winid,
                     "checkval" : alertDlg.checkval,
                     "accepted" : alertDlg.accepted
@@ -447,7 +430,7 @@ FocusScope {
         ConfirmDialog {
             id: confirmDlg
             onHandled: {
-                webViewport.child().sendAsyncMessage("confirmresponse", {
+                webViewport.child.sendAsyncMessage("confirmresponse", {
                     "winid" : winid,
                     "checkval" : confirmDlg.checkval,
                     "accepted" : confirmDlg.accepted
@@ -457,7 +440,7 @@ FocusScope {
         PromptDialog {
             id: promptDlg
             onHandled: {
-                webViewport.child().sendAsyncMessage("promptresponse", {
+                webViewport.child.sendAsyncMessage("promptresponse", {
                     "winid" : winid,
                     "checkval" : promptDlg.checkval,
                     "accepted" : promptDlg.accepted,
@@ -468,7 +451,7 @@ FocusScope {
         AuthenticationDialog {
             id: authDlg
             onHandled: {
-                webViewport.child().sendAsyncMessage("authresponse", {
+                webViewport.child.sendAsyncMessage("authresponse", {
                     "winid" : winid,
                     "checkval" : authDlg.checkval,
                     "accepted" : authDlg.accepted,
@@ -524,12 +507,12 @@ FocusScope {
             id: ctxLayout
             ContextMenuItem {
                 text: "Duplicate window"
-                onClicked: qMozContext.newWindow(webViewport.child().url)
+                onClicked: MozContext.newWindow(webViewport.child.url)
             }
             ContextMenuItem {
                 text: qsTr("Open in new window")
                 visible: contextMenu.linkHref.length
-                onClicked: qMozContext.newWindow(contextMenu.linkHref)
+                onClicked: MozContext.newWindow(contextMenu.linkHref)
             }
             ContextMenuItem {
                 text: qsTr("Copy link url")
@@ -539,7 +522,7 @@ FocusScope {
             ContextMenuItem {
                 visible: contextMenu.imgSrc.length
                 text: "Open image in new window"
-                onClicked: qMozContext.newWindow(contextMenu.imgSrc)
+                onClicked: MozContext.newWindow(contextMenu.imgSrc)
             }
             ContextMenuItem {
                 visible: contextMenu.imgSrc.length
